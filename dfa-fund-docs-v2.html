@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DFA Fund Document Comparison</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0B0F1A;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#E5E7EB;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:#111827}
+::-webkit-scrollbar-thumb{background:#1E2D45;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const C = {
+  bg:"#0B0F1A", panel:"#111827", panelDark:"#0D1320", border:"#1E2D45",
+  accent:"#2563EB", accentL:"#3B82F6",
+  us:"#10B981", dev:"#3B82F6", em:"#D4A847",
+  etf:"#8B5CF6", mf:"#0D9488",
+  muted:"#6B7280", text:"#E5E7EB", dim:"#9CA3AF", white:"#F9FAFB",
+  warn:"#F97316", rose:"#F43F5E",
+};
+
+const TABS = ["Corporate Structure","Fund Entities","Board Governance","Internal Agreements","External Providers"];
+
+// ── FUND UNIVERSE DATA ─────────────────────────────────────────────────────────
+const FUNDS = [
+  {
+    id:"dfusx", ticker:"DFUSX", vehicle:"Mutual Fund", market:"US Equity",
+    name:"US Large Company Portfolio",
+    issuer:"DFAIDG / Dimensional Investment Group Inc.", color:C.us, vcol:C.mf,
+    inception:"1990", expense:"0.08%", benchmark:"S&P 500 Index",
+    access:"Institutional / advisor-only", minInvest:"~$2M+ institutional",
+    structure:"Single-class mutual fund. Priced at NAV once daily. Redeemed directly with the fund.",
+    masterFeeder:"No — direct portfolio",
+    holdingsDisclosure:"Quarterly (30-day lag after quarter end)",
+
+    // ── NEW: Investment objective, factor definitions, sec lending ──
+    investmentObjective:"The U.S. Large Company Portfolio seeks, as its investment objective, to approximate the total investment return of the S&P 500® Index.",
+    objectiveNotes:"This is the only fund of the six with a benchmark-replication objective rather than a 'long-term capital appreciation' objective. It does not seek to beat the S&P 500 — only to approximate its return. Total return includes both income and capital appreciation.",
+
+    sizeDefinition:"Not explicitly defined as a factor tilt — the Portfolio invests in the stocks that comprise the S&P 500® Index. For context: large cap = generally the highest 90% of total US market capitalization, or the 1,000 largest US companies, whichever results in the higher market cap break. As of December 31, 2024, this threshold was $13,601 million or above. The Portfolio holds these in approximately their S&P 500 index weights.",
+    relativePriceDefinition:"No active relative price (value) tilt in DFUSX. However, the Advisor may consider relative price in adjusting S&P 500 representation. Per prospectus: 'An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios.' For DFUSX, no overweight toward value stocks — held at index weight.",
+    profitabilityDefinition:"No active profitability tilt in DFUSX. Per prospectus boilerplate: 'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets.' The criteria are subject to change. For DFUSX, profitability is not used to overweight or underweight holdings — the fund holds S&P 500 stocks in index proportions.",
+    factorTiltSummary:"DFUSX has NO active factor tilts. It is the only fund of the six that approximates an index. All other five funds tilt away from cap weights toward smaller size, lower relative price (value), and/or higher profitability.",
+
+    secLending:{
+      authorized:"Yes — 'The U.S. Large Company Portfolio may lend its portfolio securities to generate additional income.'",
+      agent:"Securities lending agent (typically State Street as custodian). DFA LP does not act as lending agent.",
+      revenue:"Modest. As a large-cap US equity fund holding liquid S&P 500 stocks, securities lending demand is lower than for small-cap or international/EM funds. US large-cap stocks are typically easily borrowed in the market. Lending revenue is a small contributor to fund returns.",
+      collateral:"Cash collateral reinvested in approved money market instruments; non-cash collateral (typically US Treasuries) also accepted.",
+      risk:"Prospectus discloses: 'Securities lending involves the risk that the borrower may fail to return the securities in a timely manner or at all. A fund may lose money and there may be a delay in recovering the loaned securities. A fund could also lose money if it does not recover the securities and/or the value of the collateral falls.' Adverse tax consequences also possible.",
+      disclosureLocation:"Annual report (N-CSR) — Statement of Operations shows securities lending income. SAI shows aggregate lending revenue, fees paid to agent, and net income per the SEC's required securities lending disclosure table.",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A)",
+        filed:"Annually, ~Feb (Nov 30 FYE → filed ~Feb)",
+        sections:[
+          {s:"Investment Objective", d:"'The U.S. Large Company Portfolio seeks, as its investment objective, to approximate the total investment return of the S&P 500® Index.' Only benchmark-replication objective of the six funds."},
+          {s:"Fee Table", d:"Management fee 0.06%, other expenses 0.03%, gross 0.09%, fee waiver -0.01%, net 0.08%. No sales load, no 12b-1 fee. Lowest expense ratio of all six funds."},
+          {s:"Principal Investment Strategies", d:"Generally invests in S&P 500 stocks in approximately their index proportions. At least 95% of net assets in S&P 500 stocks under normal conditions. May use futures for cash equitization. May lend portfolio securities."},
+          {s:"Risk Factors", d:"Equity market risk, derivatives risk, securities lending risk, operational risk, cyber security risk. Shortest risk section — no currency, international, or factor-related risks."},
+          {s:"Purchase & Redemption", d:"At end-of-day NAV. Institutional investors and clients of registered investment advisors only. No sales commission."},
+          {s:"Tax Information", d:"Dividends taxable as ordinary income or capital gains. May distribute capital gains if shareholder redemptions force sales."},
+          {s:"Management", d:"DFA LP as adviser. Jed Fogdall (since 2012), Joseph Hohn (since 2017), Joel Schneider. No sub-adviser needed (US-only, index-tracking)."},
+        ],
+        keyDiff:"Only fund with a benchmark-approximation objective, not 'long-term capital appreciation.' No factor tilt language. No sub-adviser. Shortest risk section. Lowest expense ratio (0.08%).",
+      },
+      sai:{
+        title:"Statement of Additional Information (Form N-1A, Part B)",
+        filed:"Same filing as prospectus; updated annually",
+        sections:[
+          {s:"Fund History & Organization", d:"DFAIDG organized as Maryland corporation (or Dimensional Investment Group Inc. for DFUSX). Board of Directors, committees."},
+          {s:"Investment Policies", d:"Fundamental policies: diversification (intends to be diversified to the extent S&P 500 is diversified — notable 2025 supplement), concentration limits, borrowing limits."},
+          {s:"No Sub-Advisory Agreement", d:"No sub-advisory agreement exhibit. US-only, no need for DFAL or DFA Australia."},
+          {s:"Securities Lending Detail", d:"Full description of securities lending program. Aggregate fees paid to agent, net income. Table per SEC requirements showing gross income, agent fees, rebates paid to borrowers, and net income."},
+          {s:"Custodian / Service Providers", d:"State Street Bank (custodian, transfer agent, fund accounting). PricewaterhouseCoopers LLP (auditor). DFA Securities LLC (distributor)."},
+          {s:"Tax — No Foreign Credit", d:"No foreign tax credit discussion. US-only portfolio generates no foreign taxes to pass through."},
+        ],
+        keyDiff:"No sub-advisory agreement. No foreign currency policies. No country risk appendix. Securities lending table required by SEC shows relatively modest revenue for large-cap US fund.",
+      },
+      annualReport:{
+        title:"Annual Report to Shareholders (Form N-CSR)",
+        filed:"Within 60 days of fiscal year end (Nov 30 FYE)",
+        sections:[
+          {s:"Performance Summary", d:"NAV total return vs S&P 500. 1, 5, 10-year. Should closely track the index (tracking error typically <0.05% annually)."},
+          {s:"Schedule of Investments", d:"All USD. S&P 500 holdings. Straightforward — no foreign currency, no ADRs, no P-notes."},
+          {s:"Financial Statements", d:"Statement of Operations: investment income (dividends from S&P 500 stocks) minus expenses plus securities lending income. All USD. No currency translation line."},
+          {s:"Securities Lending Note", d:"Gross income from lending, fees paid to agent, net income. Typically modest for large-cap US fund. Cash collateral reinvestment disclosures."},
+          {s:"Fair Value Note", d:"Mostly Level 1 (exchange-listed US stocks). Very simple fair value hierarchy."},
+        ],
+        keyDiff:"Simplest annual report. No currency translation. Mostly Level 1 assets. Securities lending income modest. Tracking error to S&P 500 disclosed and typically near-zero.",
+      },
+    },
+  },
+
+  {
+    id:"dfalx", ticker:"DFALX", vehicle:"Mutual Fund", market:"Developed Intl",
+    name:"Large Cap International Portfolio",
+    issuer:"DFAIDG", color:C.dev, vcol:C.mf,
+    inception:"1991", expense:"0.17%", benchmark:"MSCI World ex USA Index",
+    access:"Institutional / advisor-only", minInvest:"~$2M+ institutional",
+    structure:"Single-class mutual fund. Priced at NAV once daily. Holds foreign securities directly.",
+    masterFeeder:"No — direct portfolio",
+    holdingsDisclosure:"Quarterly (30-day lag)",
+
+    investmentObjective:"To achieve long-term capital appreciation.",
+    objectiveNotes:"The 'long-term capital appreciation' objective is standard language for all DFA equity funds except DFUSX. Unlike DFUSX, DFALX does not seek to replicate an index — it pursues factor-tilted returns above the market cap benchmark.",
+
+    sizeDefinition:"The Advisor determines company size on a country or region-specific basis and based primarily on market capitalization. For DFALX (large-cap focus): the Advisor considers large cap companies to be those in the highest 90% of total market capitalization of each country or region's eligible securities, or companies larger than or equal to a specified rank within each country's universe. Thresholds vary by country — e.g., Switzerland large cap differs from Norway large cap. The 'International Universe' is a market capitalization weighted set of non-US companies in developed markets authorized for investment by the Advisor's Investment Committee.",
+    relativePriceDefinition:"'An equity issuer is considered to have a high relative price (i.e., a growth stock) primarily because it has a high price in relation to its book value. An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios. The criteria the Advisor uses for assessing relative price and profitability are subject to change from time to time.' For DFALX: the Advisor may consider relative price but DFALX is a large-cap fund with modest tilts — it does not aggressively overweight value the way a 'Value Portfolio' would.",
+    profitabilityDefinition:"'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets.' For DFALX: the Advisor may overweight higher-profitability large international companies and reduce weight in lower-profitability names. The tilt is modest given the large-cap focus.",
+    factorTiltSummary:"DFALX has MODEST factor tilts. The Advisor 'may consider a company's size, relative price, and/or profitability relative to other eligible companies when making investment decisions.' The tilts are lighter than DFA's Core Equity or Value funds. DFALX is closer to a broad international large-cap fund with light DFA factor overlay.",
+
+    secLending:{
+      authorized:"Yes — 'The Large Cap International Portfolio may lend its portfolio securities to generate additional income.'",
+      agent:"Securities lending agent (State Street or equivalent international custodian). DFA LP does not act as lending agent.",
+      revenue:"Moderate. International developed market stocks (Japan, UK, Europe) generate more securities lending demand than US large caps. Short sellers and equity finance desks borrow international stocks. Revenue is typically higher as a % of NAV than US large cap but lower than EM.",
+      collateral:"Cash collateral reinvested in approved vehicles; non-cash collateral (typically government securities of the lending country) also accepted. Foreign collateral arrangements add complexity vs US lending.",
+      risk:"Same core risks as US fund PLUS: foreign currency denomination of collateral, settlement timing differences in international markets, foreign legal framework for securities recovery if borrower defaults. Per prospectus: same standard risk language applies.",
+      disclosureLocation:"Annual report (N-CSR) — Statement of Operations shows securities lending income. Denominated in USD after currency translation. SAI shows aggregate lending revenue table. Foreign taxes may apply to lending income in some countries.",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A)",
+        filed:"Annually, ~Feb (Nov 30 FYE)",
+        sections:[
+          {s:"Investment Objective", d:"'To achieve long-term capital appreciation.' Standard DFA active fund language — not benchmark-replication."},
+          {s:"Fee Table", d:"Management fee + other expenses = 0.17% gross/net. Higher than US fund due to international custody, foreign transaction taxes, sub-adviser costs."},
+          {s:"Investment Strategies", d:"Large-cap international developed markets (Europe, Japan, Pacific). Factor tilts toward value and profitability. May hold ADRs. Sub-advisers DFAL (UK/Europe) and DFA Australia. 'International Universe' defined. May use currency forwards."},
+          {s:"Risk Factors", d:"Adds vs US fund: currency risk, political/regulatory risk, foreign market risk, settlement risk, foreign custody risk, ADR risk, withholding tax risk, country concentration risk."},
+          {s:"Sub-Adviser Disclosure", d:"DFAL (UK, FCA-authorised) and DFA Australia named. Personnel listed. Board approval of sub-advisory arrangement."},
+          {s:"Foreign Tax Credit", d:"Shareholders may claim pass-through credit for foreign taxes paid by the fund. Not available to DFUSX shareholders."},
+          {s:"Tax Information", d:"Foreign tax credit pass-through. Currency gains may be ordinary income under Section 988."},
+        ],
+        keyDiff:"Materially longer than DFUSX. Adds: currency risk, sub-adviser disclosures, foreign tax credit, fair value pricing for international securities, ADR/GDR disclosure.",
+      },
+      sai:{
+        title:"Statement of Additional Information (Form N-1A, Part B)",
+        filed:"Same filing as prospectus",
+        sections:[
+          {s:"Sub-Advisory Agreements", d:"DFAL and DFA Australia sub-advisory agreements. DFA LP pays sub-advisers flat annual fee (~$13k/fund). Board approval required."},
+          {s:"Foreign Currency Policies", d:"Forward currency contracts, hedging policies, Section 988 treatment of currency gains."},
+          {s:"Foreign Sub-Custodians", d:"State Street uses local sub-custodians in each country. Risks of foreign sub-custody."},
+          {s:"Securities Lending — International", d:"More complex than US: foreign currency collateral, varied settlement periods by country, foreign legal frameworks for recovery. Net lending revenue shown in SEC-required table."},
+          {s:"Foreign Tax Credit Analysis", d:"Qualifying foreign taxes, per-country limitations, pass-through election procedures."},
+        ],
+        keyDiff:"Adds sub-advisory agreement exhibits, foreign sub-custodian disclosure, foreign tax credit section, multi-currency securities lending analysis. Not in DFUSX SAI.",
+      },
+      annualReport:{
+        title:"Annual Report to Shareholders (Form N-CSR)",
+        filed:"Within 60 days of fiscal year end",
+        sections:[
+          {s:"Performance Summary", d:"Returns vs MSCI World ex USA. Notes currency impact. USD returns vs local currency returns."},
+          {s:"Schedule of Investments", d:"Holdings by country. Local currency market value + USD equivalent column. ADRs noted separately."},
+          {s:"Financial Statements", d:"Foreign currency translation adjustment in Statement of Assets & Liabilities. Operations: dividend income net of foreign taxes withheld, foreign currency gain/loss. Securities lending income in USD."},
+          {s:"Foreign Taxes Note", d:"Schedule of foreign taxes withheld by country. Foreign tax credit pass-through disclosure."},
+          {s:"Sub-Adviser Note", d:"DFAL and DFA Australia compensation (flat fee from DFA LP). Not in DFUSX annual report."},
+          {s:"Securities Lending Note", d:"Gross income, agent fees, net income. Currency impact on lending income (income earned in local currency, reported in USD)."},
+        ],
+        keyDiff:"Adds foreign currency translation, multi-currency schedule of investments, foreign taxes withheld schedule, sub-adviser note, Level 1/2 fair value breakdown.",
+      },
+    },
+  },
+
+  {
+    id:"dfemx", ticker:"DFEMX", vehicle:"Mutual Fund", market:"Emerging Markets",
+    name:"Emerging Markets Portfolio",
+    issuer:"DIG / DFAITC (master-feeder)", color:C.em, vcol:C.mf,
+    inception:"1994", expense:"0.45%", benchmark:"MSCI Emerging Markets Index",
+    access:"Institutional / advisor-only", minInvest:"~$2M+ institutional",
+    structure:"FEEDER portfolio — invests substantially all assets into The Emerging Markets Series (master fund in DFAITC).",
+    masterFeeder:"YES — feeder into The Emerging Markets Series (DFAITC master fund)",
+    holdingsDisclosure:"Quarterly (lag + master fund layer adds additional complexity)",
+
+    investmentObjective:"The investment objective of the Emerging Markets Portfolio is to achieve long-term capital appreciation. The Portfolio is a Feeder Portfolio and pursues its objective by investing substantially all of its assets in its corresponding Master Fund, The Emerging Markets Series, which has the same investment objective and policies as the Emerging Markets Portfolio.",
+    objectiveNotes:"Same 'long-term capital appreciation' language as DFALX, but with the master-feeder structure explicitly stated in the objective section itself. This is unique among the six funds — the feeder/master relationship is part of the investment objective disclosure.",
+
+    sizeDefinition:"Size is determined on a country-by-country basis using market capitalization. DFEMX (via the Emerging Markets Series master fund) invests primarily in 'large company stocks' in EM countries. Per the Advisor: the Emerging Markets Series will invest in 'equity securities of companies in countries designated as Approved Markets.' Each country's eligible universe is defined based on the relative market capitalizations of companies listed on approved exchanges in that country. EM country universes are smaller in absolute dollar terms than developed market universes — so 'large cap' in Brazil means something different from 'large cap' in Japan. The Advisor establishes minimum market capitalization thresholds per country.",
+    relativePriceDefinition:"'An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios.' For DFEMX: relative price is assessed within each country's eligible universe — not relative to the global EM index. A value stock in China is valued against Chinese EM peers. The Advisor tilts modestly toward lower relative price (value) stocks within each approved EM market.",
+    profitabilityDefinition:"'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets.' For DFEMX: profitability is assessed within each EM country's eligible universe. EM profitability screening must account for varied accounting standards across countries (IFRS, local GAAP). The Advisor tilts toward higher-profitability EM companies. Note: in some EM markets, state-owned enterprises (SOEs) may show lower profitability, which the Advisor's profitability screen naturally underweights.",
+    factorTiltSummary:"DFEMX has MODEST factor tilts — it is the broad EM core fund (not a value or small-cap tilt fund). Factor tilts applied within each Approved Market's eligible universe. Tilts toward lower relative price and higher profitability are lighter than DFA's EM Value Portfolio (DFEVX) or EM Small Cap Portfolio (DEMSX).",
+
+    secLending:{
+      authorized:"Yes — 'The Emerging Markets Series may lend its portfolio securities to generate additional income.' Note: lending authorization is at the MASTER FUND level (The Emerging Markets Series), not the feeder (DFEMX). The feeder holds interests in the master; the master holds and lends actual securities.",
+      agent:"Securities lending agent at the master fund level (DFAITC-level custodian arrangement).",
+      revenue:"HIGHEST of the three mutual funds. EM stocks — especially those in restricted markets or with limited foreign ownership (e.g., certain China A-share linked structures, South Korea, Taiwan) — generate significant securities lending demand. Short sellers pay premiums to borrow EM stocks. Lending revenue as a % of NAV is materially higher for EM vs US or developed intl.",
+      collateral:"Cash or non-cash collateral per the master fund's lending program. More complex collateral arrangements — some EM markets have specific rules on acceptable collateral types. Currency conversion may be required.",
+      risk:"All standard risks PLUS: EM-specific risks — borrower may be less creditworthy in some EM markets, local market halts may prevent timely return of loaned securities, foreign exchange controls in some countries may restrict cash collateral repatriation. Master-feeder structure means feeder fund (DFEMX) bears indirect exposure to lending risk at master level.",
+      disclosureLocation:"Disclosed in the MASTER FUND's annual report (The Emerging Markets Series under DFAITC) — NOT the feeder's annual report. DFEMX feeder annual report shows the investment in master fund as a single line. Full lending revenue detail requires reviewing the DFAITC-level N-CSR. This is a key document complexity point unique to EM mutual fund.",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A) — Feeder Portfolio",
+        filed:"Annually (Oct 31 FYE → filed ~Feb)",
+        sections:[
+          {s:"Investment Objective", d:"'To achieve long-term capital appreciation.' Plus explicit master-feeder disclosure: 'The Portfolio is a Feeder Portfolio and pursues its objective by investing substantially all of its assets in its corresponding Master Fund, The Emerging Markets Series.' Unique among the six funds."},
+          {s:"Master-Feeder Disclosure", d:"Explicitly describes the two-layer structure. Feeder invests in master. Master holds securities. Rights of feeder if master is dissolved. Unique to EM feeder funds."},
+          {s:"Fee Table", d:"0.45% expense ratio reflects EM premium: transaction taxes (India STT, Brazil IOF, stamp duties), higher custody costs, EM trading spreads, sub-adviser costs."},
+          {s:"Investment Strategies", d:"Invests in ~25 EM and frontier markets. Country approval list. May hold P-notes/access products. Sub-advisers DFAL and DFA Australia. Factor tilts toward value/profitability within each country."},
+          {s:"Risk Factors", d:"Most extensive. Adds vs DFALX: country-specific political/regulatory risks, P-note risk, currency controls, nationalization, PFIC risk, settlement failure, sanctions, country concentration (China, India, Taiwan, Korea, Brazil typically 60-70% combined)."},
+          {s:"Securities Lending at Master Level", d:"Disclosed in master fund context. Lending conducted by The Emerging Markets Series, not the feeder."},
+        ],
+        keyDiff:"Most complex prospectus. Unique master-feeder objective disclosure. Most extensive risk section. P-note/access product risk. Securities lending disclosed at master fund level.",
+      },
+      sai:{
+        title:"Statement of Additional Information — Feeder SAI + Master Fund SAI (two documents)",
+        filed:"Feeder SAI with DIG registration; Master Fund SAI under DFAITC registration",
+        sections:[
+          {s:"Master-Feeder Structure", d:"Rights of feeder in master. Voting rights. What happens if feeder withdraws. Unique EM-feeder section."},
+          {s:"P-Notes / Access Products", d:"Legal analysis of participatory notes. Counterparty risk. Regulatory risk. Unique to EM funds."},
+          {s:"Country Risk Appendix", d:"25+ country-specific risk and regulatory disclosure. Foreign ownership limits, withholding rates, settlement periods."},
+          {s:"PFIC Analysis", d:"Passive Foreign Investment Company rules applicable to certain EM holdings. Complex tax analysis not in US or dev intl SAIs."},
+          {s:"Securities Lending — Two-Level Disclosure", d:"Feeder SAI may reference master fund's lending program. Full detail in master fund (DFAITC) SAI. Two sets of lending tables required."},
+        ],
+        keyDiff:"Two separate SAI documents. Master-feeder structure section. P-note legal analysis. PFIC tax section. Securities lending disclosed at master fund level (DFAITC SAI).",
+      },
+      annualReport:{
+        title:"Annual Report — Feeder + Master Fund (two reports)",
+        filed:"Within 60 days of fiscal year end (Oct 31 FYE)",
+        sections:[
+          {s:"Feeder Financial Statements", d:"Shows feeder's investment in master fund as a single line item. Feeder-level expense, income, and net asset calculation. Securities lending income flows from master to feeder as part of master fund's total return."},
+          {s:"Master Fund Financial Statements", d:"Full portfolio in The Emerging Markets Series. Schedule of investments with 25+ countries. Foreign taxes withheld by country. Level 1/2/3 fair value breakdown. P-notes. Securities lending income at master level."},
+          {s:"Securities Lending at Master Level", d:"Gross income, agent fees, net income — disclosed in DFAITC master fund annual report, not DFEMX feeder report. Investors must review master report for full lending detail."},
+          {s:"Fair Value Hierarchy", d:"Level 3 assets possible — illiquid EM securities, P-notes valued by counterparty, securities under extended trading halt."},
+        ],
+        keyDiff:"Two sets of financial statements. Securities lending revenue detail in master fund report, not feeder report. Most complex fair value hierarchy. 25+ country withholding tax schedule.",
+      },
+    },
+  },
+
+  {
+    id:"dfus", ticker:"DFUS", vehicle:"ETF", market:"US Equity",
+    name:"US Equity Market ETF",
+    issuer:"Dimensional ETF Trust", color:C.us, vcol:C.etf,
+    inception:"2021 (converted from DTMEX)", expense:"0.09%", benchmark:"Russell 3000 Index",
+    access:"Anyone with a brokerage account", minInvest:"1 share (~market price)",
+    structure:"ETF listed on NYSE Arca. In-kind creation/redemption with APs. NAV calculated daily.",
+    masterFeeder:"No",
+    holdingsDisclosure:"DAILY — full holdings disclosed per Rule 6c-11",
+
+    investmentObjective:"The investment objective of the Dimensional U.S. Equity Market ETF is to achieve long-term capital appreciation while minimizing federal income taxes on returns.",
+    objectiveNotes:"Two-part objective: capital appreciation AND tax minimization. DFUS is the only ETF of the six with an explicit tax management objective. This was inherited from its predecessor fund DTMEX (Tax-Managed US Equity Portfolio), converted to an ETF in 2021. The tax management goal shapes portfolio management decisions — the fund actively avoids realizing capital gains.",
+
+    sizeDefinition:"'The Advisor generally defines the U.S. Universe as a portfolio of U.S. operating companies listed on securities exchanges in the United States that are deemed appropriate by the Advisor.' Under a market capitalization weighted approach, 'companies with higher market capitalizations generally represent a larger proportion of the Portfolio than companies with relatively lower market capitalizations.' The Advisor considers companies of all market capitalizations for purchase. DFUS is a total-market ETF, not a large-cap-only fund (unlike DFUSX), though the largest companies naturally dominate by weight. As of December 31, 2024, small cap threshold: below $13,601 million.",
+    relativePriceDefinition:"'An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios. The criteria the Advisor uses for assessing relative price and profitability are subject to change from time to time.' For DFUS: the Advisor may increase or decrease exposure after considering relative price, but the tilt is modest — DFUS is a broad total-market ETF. The tax management objective constrains active tilting (aggressively selling high-price stocks to buy low-price stocks would realize capital gains).",
+    profitabilityDefinition:"'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets.' For DFUS: same definition as all DFA equity funds. Profitability is a secondary consideration within the total market approach — the fund tilts modestly toward higher profitability but prioritizes the tax management objective and broad diversification.",
+    factorTiltSummary:"DFUS has MODEST factor tilts — tilts toward smaller size, lower relative price, and higher profitability are applied, but constrained by the tax management objective and the broad total-market design. The tax management goal means the Advisor cannot aggressively rebalance toward factors without potentially triggering taxable gains.",
+
+    secLending:{
+      authorized:"Yes — 'The US Equity ETF may lend its portfolio securities to generate additional income.'",
+      agent:"Securities lending agent (typically custodian). DFA LP does not act as lending agent.",
+      revenue:"Modest for US large/total market. However, the tax management objective interacts with securities lending: lending income is ordinary income, which is taxable even in tax-managed funds. The fund must weigh lending revenue against the tax efficiency objective.",
+      collateral:"Cash collateral reinvested in approved money market vehicles. In-kind collateral (US Treasuries) also accepted.",
+      risk:"Standard securities lending risks (borrower default, collateral value decline) PLUS for DFUS: tax management risk — lending income received in cash is taxable, partially offsetting the ETF's tax efficiency advantage. Adverse tax consequences from lending explicitly disclosed.",
+      disclosureLocation:"Annual report (N-CSR under ETF Trust) — Statement of Operations shows lending income. SAI shows aggregate lending revenue in SEC-required table. ETF annual report also shows in-kind redemption activity (which is separate from, and more tax-efficient than, cash flows from lending income).",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A) — ETF",
+        filed:"Annually under Dimensional ETF Trust registration, ~Feb (Oct 31 FYE)",
+        sections:[
+          {s:"Investment Objective", d:"'To achieve long-term capital appreciation while minimizing federal income taxes on returns.' Two-part objective unique among the six — tax management is an explicit goal, not just a side benefit of the ETF structure."},
+          {s:"Tax Management Strategies", d:"Advisor implements strategies to: (i) delay and minimize realization of net capital gains; (ii) maximize extent to which gains are long-term. Sells stocks with losses to offset gains. Avoids selling appreciated securities. In-kind redemptions eliminate most capital gains. Unique ETF-specific section."},
+          {s:"Fee Table", d:"Management fee 0.09% (slightly above DFUSX at 0.08%). ETF costs add: bid-ask spread, brokerage commissions. Disclosure: 'You may incur usual and customary brokerage commissions when buying or selling shares, which are not reflected in the table.'"},
+          {s:"Principal Investment Strategies", d:"Market-cap weighted approach across US companies. Considers all market caps. Factor considerations (size, relative price, profitability) may adjust weights. Tax management constrains factor tilting."},
+          {s:"ETF-Specific Risks", d:"Adds vs DFUSX: trading risk (premium/discount to NAV), AP concentration risk, bid-ask spread risk, secondary market liquidity risk."},
+          {s:"Creation/Redemption", d:"AP-based in-kind mechanism. Creation units of 40,000 shares. In-kind baskets specified daily. Retail investors cannot directly redeem — must sell on exchange."},
+          {s:"Premium/Discount Table", d:"Required by SEC for all ETFs. Historical table showing how often and by how much market price deviated from NAV."},
+        ],
+        keyDiff:"Dual objective (capital appreciation + tax minimization) is unique. Tax management strategies section absent from all other five funds. AP/creation/redemption mechanism. Premium/discount table. Filed under ETF Trust (Delaware statutory trust).",
+      },
+      sai:{
+        title:"Statement of Additional Information (Form N-1A, Part B) — ETF Trust",
+        filed:"Filed under Dimensional ETF Trust registration",
+        sections:[
+          {s:"ETF Trust Structure", d:"Delaware statutory trust. Board of Trustees (not Directors). AP agreements. Exchange listing mechanics."},
+          {s:"In-Kind Redemption Tax Analysis", d:"Detailed analysis: why in-kind redemptions do not trigger capital gains at fund level. Built-in gains pass to AP, not retained by fund. Key structural tax advantage."},
+          {s:"Tax Management Detail", d:"More detailed tax management strategies. Specific techniques: loss harvesting, long-term gain maximization, avoiding wash sales, interaction with in-kind redemptions."},
+          {s:"Daily Holdings Disclosure", d:"Full portfolio transparency daily per Rule 6c-11. Interaction with tax management: daily disclosure does not undermine tax strategy because DFA's approach does not rely on information advantage."},
+          {s:"Securities Lending Tax Interaction", d:"Analysis of how securities lending income (taxable) interacts with the tax management objective. Lending income is ordinary income — reduces but does not eliminate the tax efficiency advantage."},
+        ],
+        keyDiff:"ETF Trust structure (Delaware, Trustees). In-kind redemption tax analysis unique to ETF. Tax management detail section. Lending income vs tax management tradeoff analysis.",
+      },
+      annualReport:{
+        title:"Annual Report to Shareholders (Form N-CSR) — ETF Trust",
+        filed:"Within 60 days of fiscal year end (Oct 31 FYE)",
+        sections:[
+          {s:"Performance — Dual Return Disclosure", d:"Required: both market price total return AND NAV total return. Mutual fund counterpart (DFUSX) shows only NAV return."},
+          {s:"Premium/Discount Table", d:"Annual table showing premium/discount frequency and magnitude. Required for ETFs by Rule 6c-11."},
+          {s:"Capital Gains Distribution", d:"Typically zero or near-zero — in-kind redemptions eliminate most gains. Key benefit vs DFUSX mutual fund which can distribute gains when shareholders redeem."},
+          {s:"In-Kind Redemption Note", d:"Discloses volume of in-kind creation/redemption activity. Shows dollar value of securities delivered in-kind vs cash. Not in mutual fund annual reports."},
+          {s:"Securities Lending Note", d:"Gross lending income, agent fees, net income. Also notes the tax character of lending income (ordinary income) and its interaction with the tax management objective."},
+        ],
+        keyDiff:"Dual return disclosure (market price + NAV). Zero/minimal capital gains distributions. In-kind redemption activity note. Securities lending income taxable as ordinary income — disclosed in context of tax management objective.",
+      },
+    },
+  },
+
+  {
+    id:"dfai", ticker:"DFAI", vehicle:"ETF", market:"Developed Intl",
+    name:"International Core Equity Market ETF",
+    issuer:"Dimensional ETF Trust", color:C.dev, vcol:C.etf,
+    inception:"2021", expense:"0.18%", benchmark:"MSCI World ex USA Index",
+    access:"Anyone with a brokerage account", minInvest:"1 share (~market price)",
+    structure:"ETF listed on NYSE Arca. In-kind creation/redemption — complex for international due to foreign settlement timelines.",
+    masterFeeder:"No",
+    holdingsDisclosure:"DAILY — full holdings including country breakdown",
+
+    investmentObjective:"The investment objective of the Dimensional International Core Equity Market ETF is to achieve long-term capital appreciation.",
+    objectiveNotes:"Standard 'long-term capital appreciation' language — no tax management objective (unlike DFUS). DFAI does not explicitly target tax minimization, though the ETF structure provides inherent tax advantages. This reflects the practical reality that international in-kind redemptions are more operationally complex and not always fully achievable.",
+
+    sizeDefinition:"'The Advisor defines the International Universe as a market capitalization weighted set (e.g., the larger the company, the greater the proportion of the International Universe it represents) of non-U.S. companies associated with developed markets that have been authorized as Approved Markets for investment by the Advisor.' As of the prospectus, Approved Markets include: Australia, Austria, Belgium, Canada, Denmark, Finland, France, Germany, Hong Kong, Ireland, Israel, Italy, Japan, Netherlands, New Zealand, Norway, Portugal, Singapore, Spain, Sweden, Switzerland, and the United Kingdom. Size is determined on a country or region-specific basis using market capitalization within each Approved Market's eligible universe. DFAI invests in companies of all sizes (total market in each developed country), with modestly increased exposure to smaller-cap names.",
+    relativePriceDefinition:"'An equity issuer is considered to have a high relative price (i.e., a growth stock) primarily because it has a high price in relation to its book value. An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios.' For DFAI: relative price is assessed within each Approved Market's eligible universe. DFAI tilts toward lower relative price (value) modestly across the full international developed market universe. The tilt is applied within each country, not globally.",
+    profitabilityDefinition:"'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets. The criteria the Advisor uses for assessing relative price and profitability are subject to change from time to time.' For DFAI: profitability assessed within each Approved Market's eligible universe. DFAI tilts modestly toward higher profitability international companies. Note: international GAAP differences (IFRS vs local standards) mean profitability is assessed with appropriate adjustments for each country's accounting conventions.",
+    factorTiltSummary:"DFAI has MODEST factor tilts — 'modestly increased exposure to smaller capitalization, lower relative price, and higher profitability companies as compared to their representation in the International Universe.' This is lighter tilting than DFA's International Vector or Value funds. DFAI is the broad international core ETF, analogous to DFALX mutual fund but without the tax management overlay.",
+
+    secLending:{
+      authorized:"Yes — 'The International Core ETF may lend its portfolio securities to generate additional income.'",
+      agent:"Securities lending agent (State Street or equivalent through the custodian's international network).",
+      revenue:"Moderate to higher. Developed international stocks (Japan, UK, European markets) generate meaningful securities lending demand. Short sellers and equity finance desks pay lending fees for international stocks. Revenue as % of NAV is typically higher than US large cap (DFUS) but lower than EM (DFAE).",
+      collateral:"Cash collateral or non-cash collateral (typically government securities). Multi-currency collateral management — collateral may be denominated in local currency. Currency conversion required for USD reporting.",
+      risk:"Standard risks plus international-specific: foreign currency denomination of both loaned securities and collateral, settlement timing differences (T+2 in Europe, T+3 in some markets), foreign legal frameworks for recovery on default, potential restrictions on repatriation of cash collateral in some markets. ETF structure adds: in-kind redemption of international securities is more complex, so lending program and in-kind redemption program must be coordinated.",
+      disclosureLocation:"Annual report (N-CSR under ETF Trust) — Statement of Operations shows lending income in USD. SAI shows aggregate lending table. Both market price return AND NAV return reported (ETF requirement). Lending income reported alongside in-kind redemption note.",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A) — ETF, International",
+        filed:"Annually under Dimensional ETF Trust registration",
+        sections:[
+          {s:"Investment Objective", d:"'To achieve long-term capital appreciation.' No tax management objective. Note the difference from DFUS."},
+          {s:"Investment Strategies", d:"International Core approach: all-cap developed market exposure with modest factor tilts. Approved Markets list (22 countries). Factor tilts: smaller size, lower relative price, higher profitability. Sub-advisers DFAL and DFA Australia."},
+          {s:"Risk Factors", d:"International risks (currency, political, settlement, custody, ADR) PLUS ETF risks (bid-ask spread, AP concentration, premium/discount). Largest risk section of the four non-EM funds."},
+          {s:"Sub-Adviser Disclosure", d:"DFAL and DFA Australia named, same as DFALX mutual fund."},
+          {s:"International In-Kind Complexity", d:"In-kind creation/redemption with APs is more complex for international ETF. Foreign settlement timelines differ. Currency conversion required. AP must handle multi-currency baskets."},
+          {s:"Foreign Tax Credit", d:"Pass-through credit retained from international structure — shareholders can claim credit for foreign taxes paid. Note this is NOT available to DFUS shareholders (US-only portfolio)."},
+          {s:"Premium/Discount Table", d:"Required for ETF. International ETFs often show wider premium/discounts than US ETFs due to different trading hours (foreign markets close before NYSE)."},
+        ],
+        keyDiff:"Combines international complexity (sub-advisers, foreign tax credit, currency risk) with ETF complexity (AP mechanism, premium/discount, daily disclosure). No tax management objective. International premium/discounts wider than US ETFs due to market timing.",
+      },
+      sai:{
+        title:"Statement of Additional Information — ETF Trust, International",
+        filed:"Filed under Dimensional ETF Trust",
+        sections:[
+          {s:"AP Agreements — International Complexity", d:"Multi-currency, multi-settlement-period basket procedures. APs must coordinate with foreign sub-custodians. Settlement date differences require careful basket design."},
+          {s:"Sub-Advisory Agreements", d:"DFAL and DFA Australia agreements. Now in ETF Trust SAI (not DFAIDG). Board of Trustees approval required."},
+          {s:"Foreign Sub-Custodians + ETF Context", d:"Foreign sub-custodian network same as international mutual fund. Additional complexity: APs delivering in-kind baskets must coordinate with sub-custodians."},
+          {s:"Foreign Tax Credit — ETF Preservation", d:"Analysis confirming that the ETF structure preserves the foreign tax credit pass-through. This is not automatic — the ETF must be structured appropriately to preserve this benefit."},
+          {s:"Daily Holdings Disclosure — International", d:"Daily disclosure per Rule 6c-11 includes country breakdown. Time zone issue: prior-day foreign prices may be used for daily basket valuation."},
+        ],
+        keyDiff:"Most complex non-EM SAI. ETF Trust structure + international sub-advisers + AP multi-currency basket mechanics + foreign tax credit preservation analysis.",
+      },
+      annualReport:{
+        title:"Annual Report to Shareholders (Form N-CSR) — ETF Trust, International",
+        filed:"Within 60 days of fiscal year end",
+        sections:[
+          {s:"Performance — Dual Disclosure", d:"Market price return AND NAV return vs MSCI World ex USA. EM ETF premiums/discounts larger than US ETFs."},
+          {s:"Premium/Discount Table", d:"Wider premium/discount ranges than DFUS — international markets close before NYSE, creating valuation gap during US trading hours."},
+          {s:"Financial Statements", d:"Foreign currency translation note + in-kind redemption note. Both types of complexity combined."},
+          {s:"Foreign Taxes Note", d:"Country-by-country withholding schedule. Foreign tax credit pass-through calculation. Not in DFUS annual report."},
+          {s:"Sub-Adviser Note + AP Note", d:"Both sub-adviser compensation (DFAL, DFA Australia) and AP creation/redemption activity disclosed together. Unique combination."},
+          {s:"Securities Lending Note", d:"Gross income, agent fees, net income. Multi-currency lending income converted to USD. International lending revenue typically higher than DFUS as % of NAV."},
+        ],
+        keyDiff:"International + ETF combined complexity. Wider premium/discounts than DFUS. Foreign taxes note + AP redemption note together. Sub-adviser note retained from international structure.",
+      },
+    },
+  },
+
+  {
+    id:"dfae", ticker:"DFAE", vehicle:"ETF", market:"Emerging Markets",
+    name:"Emerging Core Equity Market ETF",
+    issuer:"Dimensional ETF Trust", color:C.em, vcol:C.etf,
+    inception:"2020", expense:"0.35-0.36%", benchmark:"MSCI Emerging Markets Index",
+    access:"Anyone with a brokerage account", minInvest:"1 share (~market price)",
+    structure:"ETF listed on NYSE Arca. DIRECT portfolio (not master-feeder). In-kind creation/redemption — extremely complex for EM; some markets require cash substitution.",
+    masterFeeder:"NO — direct portfolio. Key structural difference from DFEMX mutual fund.",
+    holdingsDisclosure:"DAILY — full holdings including all ~25 EM countries per Rule 6c-11",
+
+    investmentObjective:"The investment objective of the Dimensional Emerging Core Equity Market ETF is to achieve long-term capital appreciation.",
+    objectiveNotes:"Standard 'long-term capital appreciation' language, same as DFAI and DFALX. No tax management objective (unlike DFUS). Critically: DFAE is a DIRECT portfolio — it directly holds EM securities. DFEMX mutual fund says 'The Portfolio is a Feeder Portfolio and pursues its objective by investing substantially all of its assets in its corresponding Master Fund.' DFAE's objective statement has no such feeder language. This single structural difference cascades through the entire document set.",
+
+    sizeDefinition:"The Advisor defines the 'Emerging Markets Universe' as a market capitalization weighted set of companies associated with emerging markets that have been authorized as Approved Markets for investment by the Advisor's Investment Committee. As of the prospectus, DFAE covers approximately 25 EM and frontier markets. Size is determined on a country-by-country basis: each country's eligible companies are ranked by market capitalization, and size thresholds are set on a per-country basis. EM country thresholds are lower in absolute dollar terms than developed market thresholds. DFAE invests in companies of all sizes, with modestly increased exposure to smaller capitalization companies relative to their representation in the EM universe — similar approach to DFAI but applied to EM countries.",
+    relativePriceDefinition:"'An equity issuer is considered to have a low relative price (i.e., a value stock) primarily because it has a low price in relation to its book value. In assessing relative price, the Advisor may consider additional factors such as price to cash flow or price to earnings ratios.' For DFAE: relative price is assessed within each EM country's eligible universe. EM value assessment is complicated by: varied accounting standards across 25 countries (IFRS, local GAAP, Chinese GAAP, Indian GAAP), state-owned enterprise (SOE) accounting distortions, limited financial data availability in some frontier markets. The Advisor applies consistent relative price criteria adapted for each market's accounting conventions.",
+    profitabilityDefinition:"'An equity issuer is considered to have high profitability because it has high earnings or profits from operations in relation to its book value or assets.' For DFAE: profitability assessed within each EM country's eligible universe. Challenges unique to EM: SOE distortions (government-owned companies may report inflated or suppressed profits), cross-listing distortions (some Chinese companies listed in Hong Kong and Shanghai may show different book values), limited audit quality in some markets. DFA's Investment Committee sets standards for which financial data is used. DFAE modestly tilts toward higher-profitability EM companies across all ~25 markets.",
+    factorTiltSummary:"DFAE has MODEST factor tilts — similar to DFAI in intensity, applied to EM. 'Modestly increased exposure to smaller capitalization, lower relative price, and higher profitability companies as compared to their representation in the Emerging Markets Universe.' The tilt intensity is lighter than DFA's EM Value Portfolio or EM Small Cap Portfolio. DFAE is the broad EM core ETF, analogous to DFEMX mutual fund but without the master-feeder structure.",
+
+    secLending:{
+      authorized:"Yes — 'The Emerging Markets Core ETF may lend its portfolio securities to generate additional income.' Authorization is at the DIRECT portfolio level (unlike DFEMX where authorization is at the master fund). DFAE itself holds and lends EM securities directly.",
+      agent:"Securities lending agent (State Street or custodian bank). DFA LP does not act as lending agent.",
+      revenue:"HIGHEST expected revenue of the six funds, though some EM markets restrict lending. EM stocks with high short interest (China tech, Korean stocks, Taiwan semiconductors, Brazilian consumer stocks) command premium lending fees. Securities lending revenue as % of NAV can be materially higher than developed market funds. However, some EM markets prohibit or restrict securities lending (certain EM countries do not have established securities lending markets), limiting full program participation.",
+      collateral:"Cash or non-cash collateral. EM complexity: cash collateral must be reinvested in approved vehicles appropriate for the EM context. Non-cash collateral may be in foreign currencies. For restricted EM markets where lending is limited, collateral arrangements may differ. Cash substitution in ETF baskets interacts with the lending program.",
+      risk:"Standard risks + international-specific risks (from DFAI) + EM-specific risks: some EM markets have limited securities lending infrastructure, borrower credit risk higher in some EM markets, local market halts (circuit breakers common in China, India) may prevent timely return. ETF-specific: lending activity must be coordinated with in-kind basket management — loaned securities cannot be delivered in-kind while on loan, which may force cash substitution in creation/redemption baskets. 'Cash substitution' in EM in-kind baskets is explicitly disclosed as both an EM market access issue AND a securities lending interaction issue.",
+      disclosureLocation:"Annual report (N-CSR under ETF Trust) — Statement of Operations shows lending income in USD (converted from local currencies). KEY DIFFERENCE from DFEMX: DFAE's lending detail is in ONE annual report (the direct portfolio's N-CSR), not split across feeder + master reports. SAI shows aggregate lending table. Cash substitution amounts (where in-kind delivery impossible) are separately disclosed and interact with lending revenue.",
+    },
+
+    docs:{
+      prospectus:{
+        title:"Statutory Prospectus (Form N-1A, Part A) — ETF, Emerging Markets",
+        filed:"Annually under Dimensional ETF Trust registration",
+        sections:[
+          {s:"Investment Objective", d:"'To achieve long-term capital appreciation.' No feeder structure language. No tax management objective. Direct portfolio."},
+          {s:"No Master-Feeder", d:"Key absence vs DFEMX: no master-feeder structure disclosure. DFAE directly holds EM securities. Eliminates one layer of structural complexity from the prospectus — but adds ETF complexity instead."},
+          {s:"Investment Strategies", d:"Direct EM investment across ~25 Approved Markets. Factor tilts toward smaller size, lower relative price, higher profitability within each country's universe. Sub-advisers DFAL and DFA Australia. May use P-notes/access products directly (not via master fund)."},
+          {s:"Risk Factors", d:"Most complex of all six. ALL EM mutual fund risks (P-notes, country risk, political, currency controls, PFIC, sanctions) + ALL ETF risks (bid-ask, AP concentration, premium/discount) + UNIQUE EM-ETF risks: in-kind basket limitations (some EM markets cannot support in-kind delivery), wider premium/discounts due to EM market timing, higher AP spread risk in EM, market halt risk."},
+          {s:"EM In-Kind Basket Limitations", d:"Unique disclosure: 'In-kind redemptions may not be available for all securities in certain markets, requiring cash substitutions, which may affect tax efficiency.' EM-ETF specific risk not in any other fund's prospectus."},
+          {s:"Securities Lending Disclosure", d:"Authorization at direct portfolio level. Interaction with in-kind basket — loaned securities may require cash substitution if they cannot be delivered in-kind while on loan."},
+        ],
+        keyDiff:"Most complex prospectus overall. Master-feeder disclosure absent (simpler) but replaced by EM-ETF specific disclosures. Unique: in-kind basket limitation risk and cash substitution disclosure. Securities lending at direct portfolio level.",
+      },
+      sai:{
+        title:"Statement of Additional Information — ETF Trust, Emerging Markets",
+        filed:"Filed under Dimensional ETF Trust (one SAI, not two like DFEMX)",
+        sections:[
+          {s:"One SAI vs DFEMX's Two", d:"Key simplification: only ONE SAI vs DFEMX's two (feeder + master). No master fund SAI required. All EM information in single document."},
+          {s:"Cash Substitution Procedures", d:"Detailed procedures for when EM market restrictions prevent in-kind basket delivery. Which markets, what triggers substitution, tax implications, interaction with lending program. Unique to EM ETF SAI."},
+          {s:"AP Risk in EM Context", d:"Analysis of authorized participant behavior in EM markets. Fewer APs willing to work EM baskets. Wider spreads. Greater premium/discount tolerance."},
+          {s:"Securities Lending — EM Market by Market", d:"Discussion of which EM markets support lending, which restrict it, partial lending program participation. How restricted markets affect overall lending revenue. Interaction between lending and in-kind basket availability."},
+          {s:"P-Notes / Access Products", d:"Same P-note legal analysis as DFEMX SAI, but now at the direct portfolio level (not master fund level). Legal, counterparty, regulatory risks."},
+          {s:"Daily Disclosure — EM Front-Running Tension", d:"Discussion of whether daily EM holdings disclosure (Rule 6c-11) creates front-running risk given EM illiquidity. How DFA manages this. EM-ETF unique tension."},
+        ],
+        keyDiff:"ONE SAI (vs DFEMX's two). Cash substitution procedures unique to EM ETF. Lending program restricted in some EM markets. Front-running tension with daily disclosure in illiquid EM markets.",
+      },
+      annualReport:{
+        title:"Annual Report to Shareholders (Form N-CSR) — ETF Trust, Emerging Markets",
+        filed:"Within 60 days of fiscal year end",
+        sections:[
+          {s:"ONE Report vs DFEMX's Two", d:"Single set of financial statements (direct portfolio). DFEMX annual report contains two sets (feeder + master). DFAE report is simpler structurally."},
+          {s:"Performance — Dual Disclosure", d:"Market price return + NAV return vs MSCI EM. EM ETFs show widest premium/discounts of the six — multiple time zones, EM volatility, limited AP arbitrage."},
+          {s:"Premium/Discount Table", d:"Widest premium/discount ranges of the six funds. EM market timing, volatility, and AP spread limitations all contribute."},
+          {s:"Schedule of Investments — Direct EM", d:"Full underlying portfolio (no 'investment in master fund' single line). Holdings by country + company. P-notes listed separately. Most transparent EM disclosure of the two EM funds."},
+          {s:"Securities Lending Note", d:"Gross income, agent fees, net income — ALL in one report (not split like DFEMX). Cash substitution amounts disclosed. Country-by-country lending participation noted. Highest expected lending revenue of the six funds as % of NAV."},
+          {s:"Cash Substitution Activity", d:"Annual note showing in-kind creation/redemption activity with cash substitution amounts. Shows which EM markets required cash substitution instead of in-kind delivery. Unique to EM ETF."},
+          {s:"Fair Value Hierarchy", d:"Level 3 assets possible. P-notes (Level 2/3). Illiquid EM securities. Securities under extended trading halt. Most complex fair value note."},
+        ],
+        keyDiff:"Single report vs DFEMX's two. More transparent than DFEMX (shows full portfolio, not just 'investment in master'). Cash substitution note unique to EM ETF. Securities lending revenue highest expected and shown in single report. Widest premium/discounts among the six.",
+      },
+    },
+  },
+];
+
+const DOC_TYPES = ["prospectus","sai","annualReport"];
+const DOC_LABELS = { prospectus:"Prospectus", sai:"SAI", annualReport:"Annual Report" };
+const DOC_ICONS  = { prospectus:"📋", sai:"📖", annualReport:"📊" };
+
+function Pill({ color, children, small }) {
+  return <span style={{ background:`${color}20`, border:`1px solid ${color}50`, borderRadius:20, padding:small?"2px 8px":"3px 11px", fontSize:small?10:11, color, fontWeight:600, whiteSpace:"nowrap" }}>{children}</span>;
+}
+function DimBtn({ label, active, color, onClick }) {
+  return <button onClick={onClick} style={{ background:active?`${color}20`:"transparent", border:`1px solid ${active?color:C.border}`, borderRadius:7, padding:"7px 13px", fontSize:12, fontWeight:active?700:400, color:active?C.white:C.muted, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>{label}</button>;
+}
+function AccordionList({ items, accentColor }) {
+  const [open, setOpen] = useState(null);
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
+      {items.map((item,i) => (
+        <div key={i}>
+          <button onClick={() => setOpen(open===i?null:i)} style={{ width:"100%", background:open===i?`${accentColor||C.accent}18`:"#0D1320", border:`1px solid ${open===i?accentColor||C.accent:C.border}`, borderRadius:7, padding:"8px 12px", textAlign:"left", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", transition:"all 0.15s" }}>
+            <span style={{ fontSize:12, fontWeight:600, color:open===i?C.white:C.text }}>{item.s}</span>
+            <span style={{ fontSize:10, color:C.muted, flexShrink:0, marginLeft:8 }}>{open===i?"▲":"▼"}</span>
+          </button>
+          {open===i && (
+            <div style={{ background:"#0D1320", borderLeft:`3px solid ${accentColor||C.accent}`, borderRadius:"0 0 7px 7px", padding:"10px 13px", marginTop:1 }}>
+              <p style={{ fontSize:12, color:C.dim, lineHeight:1.7 }}>{item.d}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── NEW: Fund Profile Panel ───────────────────────────────────────────────────
+function FundProfile({ fund }) {
+  const [section, setSection] = useState("objective");
+  const sections = [
+    { id:"objective", label:"📌 Investment Objective" },
+    { id:"size",      label:"📏 Size" },
+    { id:"relPrice",  label:"📉 Relative Price" },
+    { id:"profit",    label:"💰 Profitability" },
+    { id:"seclend",   label:"📦 Securities Lending" },
+  ];
+
+  const lendingRows = [
+    { k:"Authorization", v: fund.secLending.authorized },
+    { k:"Lending Agent", v: fund.secLending.agent },
+    { k:"Revenue Expectation", v: fund.secLending.revenue },
+    { k:"Collateral", v: fund.secLending.collateral },
+    { k:"Key Risks", v: fund.secLending.risk },
+    { k:"Where Disclosed", v: fund.secLending.disclosureLocation },
+  ];
+
+  return (
+    <div style={{ background:C.panel, border:`1px solid ${fund.color}30`, borderRadius:12, overflow:"hidden" }}>
+      {/* Fund header strip */}
+      <div style={{ padding:"12px 16px", background:`${fund.color}08`, borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ width:10, height:10, borderRadius:"50%", background:fund.color, boxShadow:`0 0 6px ${fund.color}`, flexShrink:0 }} />
+        <div>
+          <div style={{ fontSize:14, fontWeight:700, color:C.white, fontFamily:"Georgia,serif" }}>{fund.name}</div>
+          <div style={{ display:"flex", gap:5, marginTop:3, flexWrap:"wrap" }}>
+            <Pill color={fund.color} small>{fund.ticker}</Pill>
+            <Pill color={fund.vcol} small>{fund.vehicle}</Pill>
+            <Pill color={fund.color} small>{fund.market}</Pill>
+          </div>
+        </div>
+      </div>
+
+      {/* Section picker */}
+      <div style={{ display:"flex", overflowX:"auto", borderBottom:`1px solid ${C.border}`, background:C.panelDark }}>
+        {sections.map(s => (
+          <button key={s.id} onClick={() => setSection(s.id)} style={{ background:"none", border:"none", borderBottom:section===s.id?`2px solid ${fund.color}`:"2px solid transparent", padding:"9px 12px", fontSize:11, fontWeight:section===s.id?700:400, color:section===s.id?C.white:C.muted, cursor:"pointer", whiteSpace:"nowrap" }}>{s.label}</button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ padding:"14px 16px" }}>
+        {section==="objective" && (
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:fund.color, fontFamily:"Georgia,serif", marginBottom:10 }}>Investment Objective</div>
+            <div style={{ fontSize:12, color:C.white, lineHeight:1.7, padding:"10px 13px", background:`${fund.color}12`, border:`1px solid ${fund.color}30`, borderRadius:8, marginBottom:12, fontStyle:"italic" }}>"{fund.investmentObjective}"</div>
+            <div style={{ fontSize:11, color:C.dim, lineHeight:1.7 }}>{fund.objectiveNotes}</div>
+            {fund.factorTiltSummary && (
+              <div style={{ marginTop:12, padding:"9px 12px", background:`${C.warn}0D`, border:`1px solid ${C.warn}30`, borderRadius:7 }}>
+                <div style={{ fontSize:10, color:C.warn, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:3 }}>Factor Tilt Summary</div>
+                <div style={{ fontSize:11, color:C.dim, lineHeight:1.6 }}>{fund.factorTiltSummary}</div>
+              </div>
+            )}
+          </div>
+        )}
+        {section==="size" && (
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:fund.color, fontFamily:"Georgia,serif", marginBottom:10 }}>Size — How Defined in the Prospectus</div>
+            <div style={{ fontSize:12, color:C.dim, lineHeight:1.75 }}>{fund.sizeDefinition}</div>
+          </div>
+        )}
+        {section==="relPrice" && (
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:fund.color, fontFamily:"Georgia,serif", marginBottom:10 }}>Relative Price — How Defined in the Prospectus</div>
+            <div style={{ fontSize:12, color:C.dim, lineHeight:1.75 }}>{fund.relativePriceDefinition}</div>
+          </div>
+        )}
+        {section==="profit" && (
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:fund.color, fontFamily:"Georgia,serif", marginBottom:10 }}>Profitability — How Defined in the Prospectus</div>
+            <div style={{ fontSize:12, color:C.dim, lineHeight:1.75 }}>{fund.profitabilityDefinition}</div>
+          </div>
+        )}
+        {section==="seclend" && (
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:fund.color, fontFamily:"Georgia,serif", marginBottom:10 }}>Securities Lending</div>
+            {lendingRows.map((row,i) => (
+              <div key={i} style={{ background:"#0D1320", borderRadius:7, padding:"9px 12px", marginBottom:6 }}>
+                <div style={{ fontSize:10, color:C.muted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:2 }}>{row.k}</div>
+                <div style={{ fontSize:12, color:C.dim, lineHeight:1.6 }}>{row.v}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Doc panel ─────────────────────────────────────────────────────────────────
+function FundDocPanel({ fund, docType }) {
+  const doc = fund.docs[docType];
+  return (
+    <div style={{ background:C.panel, border:`1px solid ${fund.color}30`, borderRadius:12, overflow:"hidden" }}>
+      <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:10, background:`${fund.color}08` }}>
+        <div style={{ width:9, height:9, borderRadius:"50%", background:fund.color, boxShadow:`0 0 6px ${fund.color}`, flexShrink:0 }} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:C.white, fontFamily:"Georgia,serif" }}>{fund.name}</div>
+          <div style={{ display:"flex", gap:5, marginTop:3, flexWrap:"wrap" }}>
+            <Pill color={fund.color} small>{fund.ticker}</Pill>
+            <Pill color={fund.vcol} small>{fund.vehicle}</Pill>
+          </div>
+        </div>
+      </div>
+      <div style={{ padding:"11px 15px", borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.accentL, marginBottom:3 }}>{doc.title}</div>
+        <div style={{ fontSize:11, color:C.dim }}>Filed: {doc.filed}</div>
+        {fund.masterFeeder && fund.masterFeeder.startsWith("YES") && docType==="sai" && (
+          <div style={{ marginTop:6, padding:"5px 9px", background:`${C.warn}18`, border:`1px solid ${C.warn}40`, borderRadius:5, fontSize:11, color:C.warn }}>⚠️ Two SAI documents: feeder + master fund</div>
+        )}
+        {fund.masterFeeder && fund.masterFeeder.startsWith("YES") && docType==="annualReport" && (
+          <div style={{ marginTop:6, padding:"5px 9px", background:`${C.warn}18`, border:`1px solid ${C.warn}40`, borderRadius:5, fontSize:11, color:C.warn }}>⚠️ Dual financial statements: feeder + master fund</div>
+        )}
+      </div>
+      <div style={{ padding:"11px 15px", borderBottom:`1px solid ${C.border}` }}>
+        <div style={{ fontSize:10, color:C.muted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Document Sections</div>
+        <AccordionList items={doc.sections} accentColor={fund.color} />
+      </div>
+      <div style={{ padding:"11px 15px" }}>
+        <div style={{ fontSize:10, color:C.muted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:5 }}>Key Differences vs Other Funds</div>
+        <div style={{ fontSize:12, color:C.dim, lineHeight:1.7, padding:"9px 12px", background:`${fund.color}08`, borderLeft:`3px solid ${fund.color}50`, borderRadius:"0 6px 6px 0" }}>{doc.keyDiff}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Structural table ───────────────────────────────────────────────────────────
+function StructureTable() {
+  const rows = [
+    { dim:"Legal Entity", dfusx:"DFAIDG/DIG (MD Corp)", dfalx:"DFAIDG (MD Corp)", dfemx:"DIG / DFAITC (MD+DE)", dfus:"ETF Trust (DE Trust)", dfai:"ETF Trust (DE Trust)", dfae:"ETF Trust (DE Trust)" },
+    { dim:"Investment Objective", dfusx:"Approximate S&P 500 total return", dfalx:"Long-term capital appreciation", dfemx:"Long-term capital appreciation", dfus:"Capital appreciation + minimize taxes", dfai:"Long-term capital appreciation", dfae:"Long-term capital appreciation" },
+    { dim:"Master-Feeder", dfusx:"No", dfalx:"No", dfemx:"YES — feeds into DFAITC", dfus:"No", dfai:"No", dfae:"No" },
+    { dim:"Factor Tilts", dfusx:"None — index replication", dfalx:"Modest (value, profit)", dfemx:"Modest (value, profit)", dfus:"Modest (constrained by tax mgmt)", dfai:"Modest (size, value, profit)", dfae:"Modest (size, value, profit)" },
+    { dim:"Size Universe", dfusx:"S&P 500 (US large cap)", dfalx:"Intl Universe (by country)", dfemx:"EM country-by-country", dfus:"US Universe (all cap)", dfai:"Intl Universe (all cap)", dfae:"EM Universe (~25 countries)" },
+    { dim:"Relative Price Def.", dfusx:"P/B (no active tilt)", dfalx:"Low P/B = value", dfemx:"Low P/B per country", dfus:"Low P/B (light tilt)", dfai:"Low P/B per Approved Market", dfae:"Low P/B per EM market" },
+    { dim:"Profitability Def.", dfusx:"Earnings/book (no tilt)", dfalx:"Op. earnings/book or assets", dfemx:"Op. earnings/book or assets", dfus:"Op. earnings/book (light tilt)", dfai:"Op. earnings/book per market", dfae:"Op. earnings/book per EM market" },
+    { dim:"Sec Lending Auth.", dfusx:"Yes", dfalx:"Yes", dfemx:"Yes (at master level)", dfus:"Yes (tax interaction)", dfai:"Yes", dfae:"Yes (some EM restrictions)" },
+    { dim:"Sec Lending Revenue", dfusx:"Modest (US large cap)", dfalx:"Moderate (intl demand)", dfemx:"High (EM — master level)", dfus:"Modest (tax tradeoff)", dfai:"Moderate-high (intl)", dfae:"Highest expected (EM direct)" },
+    { dim:"Sec Lending Disclosure", dfusx:"1 annual report", dfalx:"1 annual report", dfemx:"Master fund report only", dfus:"1 annual report (+ tax note)", dfai:"1 annual report", dfae:"1 annual report (cash sub note)" },
+    { dim:"SAI Documents", dfusx:"1", dfalx:"1", dfemx:"2 (feeder + master)", dfus:"1", dfai:"1", dfae:"1" },
+    { dim:"Holdings Disclosure", dfusx:"Quarterly (30-day lag)", dfalx:"Quarterly (30-day lag)", dfemx:"Quarterly (+ master layer)", dfus:"DAILY", dfai:"DAILY", dfae:"DAILY" },
+    { dim:"Expense Ratio", dfusx:"0.08%", dfalx:"0.17%", dfemx:"0.45%", dfus:"0.09%", dfai:"0.18%", dfae:"0.35-0.36%" },
+  ];
+  const funds = [
+    { key:"dfusx", label:"DFUSX", color:C.us, vcol:C.mf },
+    { key:"dfalx", label:"DFALX", color:C.dev, vcol:C.mf },
+    { key:"dfemx", label:"DFEMX", color:C.em, vcol:C.mf },
+    { key:"dfus",  label:"DFUS",  color:C.us, vcol:C.etf },
+    { key:"dfai",  label:"DFAI",  color:C.dev, vcol:C.etf },
+    { key:"dfae",  label:"DFAE",  color:C.em, vcol:C.etf },
+  ];
+  const hl = (v) => {
+    if(v==="No"||v==="None — index replication"||v==="1"||v.includes("30-day")) return C.muted;
+    if(v.startsWith("YES")||v==="DAILY"||v==="High (EM — master level)"||v==="Highest expected (EM direct)") return C.warn;
+    if(v.includes("capital appreciation + minimize")||v.includes("tax interaction")||v.includes("tax tradeoff")||v.includes("tax note")) return C.etf;
+    if(v.includes("Moderate")||v.includes("Yes")) return C.green;
+    return C.dim;
+  };
+  return (
+    <div style={{ overflowX:"auto" }}>
+      <table style={{ width:"100%", borderCollapse:"collapse", fontSize:11 }}>
+        <thead>
+          <tr style={{ borderBottom:`2px solid ${C.border}` }}>
+            <th style={{ textAlign:"left", padding:"8px 12px", color:C.muted, fontWeight:600, fontSize:10, textTransform:"uppercase", letterSpacing:"0.08em", minWidth:140, background:C.panelDark }}>Dimension</th>
+            {funds.map(f => (
+              <th key={f.key} style={{ padding:"8px 10px", background:C.panelDark, minWidth:110 }}>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+                  <span style={{ fontSize:13, fontWeight:700, color:f.color }}>{f.label}</span>
+                  <Pill color={f.vcol} small>{f.vcol===C.mf?"MF":"ETF"}</Pill>
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row,i) => (
+            <tr key={i} style={{ borderBottom:`1px solid ${C.border}`, background:i%2===0?C.panel:C.panelDark }}>
+              <td style={{ padding:"8px 12px", color:C.text, fontWeight:600, fontSize:11 }}>{row.dim}</td>
+              {funds.map(f => (
+                <td key={f.key} style={{ padding:"8px 10px", textAlign:"center" }}>
+                  <span style={{ fontSize:11, color:hl(row[f.key]), lineHeight:1.4, display:"block" }}>{row[f.key]}</span>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [view, setView] = useState("profile");
+  const [docType, setDocType] = useState("prospectus");
+  const [selFund, setSelFund] = useState("dfusx");
+  const [selDoc, setSelDoc] = useState("prospectus");
+
+  const markets = ["US Equity","Developed Intl","Emerging Markets"];
+
+  return (
+    <div style={{ background:C.bg, minHeight:"100vh", fontFamily:"'Helvetica Neue',Helvetica,Arial,sans-serif", color:C.text, paddingBottom:60 }}>
+      {/* Header */}
+      <div style={{ background:"linear-gradient(135deg,#0B1628 0%,#111827 100%)", borderBottom:`1px solid ${C.border}`, padding:"20px 20px 14px" }}>
+        <div style={{ fontSize:10, color:C.accent, fontFamily:"monospace", letterSpacing:"0.15em", textTransform:"uppercase", marginBottom:4 }}>Fund Document Analysis</div>
+        <h1 style={{ fontSize:20, fontWeight:800, color:C.white, fontFamily:"Georgia,serif", margin:0, marginBottom:3 }}>DFA Fund Document Comparison</h1>
+        <p style={{ fontSize:12, color:C.muted, margin:0 }}>Prospectus · SAI · Annual Report · Investment Objectives · Factor Definitions · Securities Lending</p>
+      </div>
+
+      {/* Legend */}
+      <div style={{ padding:"10px 20px", background:C.panel, borderBottom:`1px solid ${C.border}`, display:"flex", gap:12, flexWrap:"wrap", alignItems:"center" }}>
+        <Pill color={C.us}>US Equity</Pill>
+        <Pill color={C.dev}>Developed Intl</Pill>
+        <Pill color={C.em}>Emerging Markets</Pill>
+        <span style={{ color:C.border }}>|</span>
+        <Pill color={C.mf}>Mutual Fund</Pill>
+        <Pill color={C.etf}>ETF</Pill>
+      </div>
+
+      {/* View selector */}
+      <div style={{ padding:"12px 20px", borderBottom:`1px solid ${C.border}`, display:"flex", gap:8, flexWrap:"wrap" }}>
+        <DimBtn label="📌 Fund Profiles" active={view==="profile"} color={C.accent} onClick={() => setView("profile")} />
+        <DimBtn label="📄 Side-by-Side Docs" active={view==="compare"} color={C.accent} onClick={() => setView("compare")} />
+        <DimBtn label="🔍 Deep Dive" active={view==="fund"} color={C.accent} onClick={() => setView("fund")} />
+        <DimBtn label="📊 Comparison Table" active={view==="table"} color={C.accent} onClick={() => setView("table")} />
+      </div>
+
+      {/* ── VIEW: Fund Profiles ── */}
+      {view==="profile" && (
+        <div style={{ padding:"16px 20px" }}>
+          <p style={{ fontSize:12, color:C.dim, marginBottom:18, lineHeight:1.6 }}>
+            For each fund: the exact investment objective from the prospectus, how size / relative price / profitability are defined in the legal documents, and the full securities lending picture — authorization, expected revenue, collateral, risks, and where it's disclosed.
+          </p>
+          {markets.map(mkt => {
+            const mf = FUNDS.find(f => f.market===mkt && f.vehicle==="Mutual Fund");
+            const etf = FUNDS.find(f => f.market===mkt && f.vehicle==="ETF");
+            const mc = mkt==="US Equity"?C.us:mkt==="Developed Intl"?C.dev:C.em;
+            return (
+              <div key={mkt} style={{ marginBottom:28 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14 }}>
+                  <div style={{ width:3, height:22, background:mc, borderRadius:2 }} />
+                  <span style={{ fontSize:15, fontWeight:700, color:mc, fontFamily:"Georgia,serif" }}>{mkt}</span>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                  <FundProfile fund={mf} />
+                  <FundProfile fund={etf} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── VIEW: Side-by-side docs ── */}
+      {view==="compare" && (
+        <div style={{ padding:"16px 20px" }}>
+          <div style={{ marginBottom:14 }}>
+            <div style={{ fontSize:11, color:C.muted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Select Document Type</div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              {DOC_TYPES.map(dt => (
+                <DimBtn key={dt} label={`${DOC_ICONS[dt]} ${DOC_LABELS[dt]}`} active={docType===dt} color={C.accent} onClick={() => setDocType(dt)} />
+              ))}
+            </div>
+          </div>
+          <p style={{ fontSize:12, color:C.dim, marginBottom:18, lineHeight:1.6 }}>Showing the <strong style={{ color:C.white }}>{DOC_LABELS[docType]}</strong> across all six funds — mutual fund vs ETF for each market.</p>
+          {markets.map(mkt => {
+            const mf = FUNDS.find(f => f.market===mkt && f.vehicle==="Mutual Fund");
+            const etf = FUNDS.find(f => f.market===mkt && f.vehicle==="ETF");
+            const mc = mkt==="US Equity"?C.us:mkt==="Developed Intl"?C.dev:C.em;
+            return (
+              <div key={mkt} style={{ marginBottom:28 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12 }}>
+                  <div style={{ width:3, height:22, background:mc, borderRadius:2 }} />
+                  <span style={{ fontSize:14, fontWeight:700, color:mc, fontFamily:"Georgia,serif" }}>{mkt}</span>
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                  <FundDocPanel fund={mf} docType={docType} />
+                  <FundDocPanel fund={etf} docType={docType} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── VIEW: Deep Dive ── */}
+      {view==="fund" && (
+        <div style={{ padding:"16px 20px" }}>
+          <div style={{ marginBottom:16 }}>
+            <div style={{ fontSize:11, color:C.muted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Select Fund</div>
+            <div style={{ display:"flex", gap:7, flexWrap:"wrap" }}>
+              {FUNDS.map(f => (
+                <button key={f.id} onClick={() => setSelFund(f.id)} style={{ background:selFund===f.id?`${f.color}20`:"transparent", border:`1px solid ${selFund===f.id?f.color:C.border}`, borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:selFund===f.id?700:400, color:selFund===f.id?f.color:C.muted, cursor:"pointer", display:"flex", alignItems:"center", gap:5 }}>
+                  {f.ticker} <span style={{ fontSize:10, opacity:0.7 }}>{f.vehicle==="ETF"?"ETF":"MF"}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          {(() => {
+            const fund = FUNDS.find(f => f.id===selFund);
+            return (
+              <div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr", gap:14, marginBottom:16 }}>
+                  <FundProfile fund={fund} />
+                </div>
+                <div style={{ fontSize:11, color:C.muted, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Document Detail</div>
+                <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+                  {DOC_TYPES.map(dt => (
+                    <button key={dt} onClick={() => setSelDoc(dt)} style={{ flex:1, background:selDoc===dt?`${fund.color}20`:"transparent", border:`1px solid ${selDoc===dt?fund.color:C.border}`, borderRadius:8, padding:"10px 8px", fontSize:12, fontWeight:selDoc===dt?700:400, color:selDoc===dt?C.white:C.muted, cursor:"pointer", textAlign:"center" }}>
+                      {DOC_ICONS[dt]} {DOC_LABELS[dt]}
+                    </button>
+                  ))}
+                </div>
+                <FundDocPanel fund={fund} docType={selDoc} />
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── VIEW: Comparison Table ── */}
+      {view==="table" && (
+        <div style={{ padding:"16px 20px" }}>
+          <p style={{ fontSize:12, color:C.dim, marginBottom:18, lineHeight:1.6 }}>
+            Cross-fund comparison of objectives, factor definitions, securities lending, and structural differences. <span style={{ color:C.green }}>Green</span> = feature present. <span style={{ color:C.warn }}>Orange</span> = high complexity or notable characteristic.
+          </p>
+          <StructureTable />
+          <div style={{ marginTop:20, display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+            {[
+              { title:"Investment Objective Differences", color:C.accentL, points:["DFUSX only: benchmark-replication ('approximate total return of S&P 500') — not 'long-term capital appreciation'","DFUS only: dual objective — capital appreciation AND explicit tax minimization","DFEMX only: master-feeder structure stated IN the objective ('pursues its objective by investing in its Master Fund')","DFAI, DFALX, DFAE, DFEMX: standard 'long-term capital appreciation' language","No fund targets 'income' as a primary objective — all are capital appreciation focused"] },
+              { title:"Factor Definition Consistency", color:C.em, points:["ALL six funds use identical relative price definition: 'low price in relation to book value' with possible adjustments for P/CF or P/E","ALL six funds use identical profitability definition: 'high earnings or profits from operations in relation to book value or assets'","Size definition varies: US funds use US Universe, developed intl use country-specific International Universe, EM funds use per-country EM thresholds","DFUSX has NO active factor tilts — holds S&P 500 at index weights","Criteria for relative price and profitability are explicitly stated as 'subject to change from time to time' in all six prospectuses"] },
+              { title:"Securities Lending Cross-Fund", color:C.dev, points:["All six funds authorized to lend — language is standard across prospectuses","DFEMX: lending at MASTER FUND level — feeder annual report shows no lending detail; must read DFAITC N-CSR","DFUS: lending income is ordinary income, partially offsetting the tax management objective — unique tension","DFAE: some EM markets restrict lending — cash substitution in ETF baskets interacts with lending program","Revenue gradient: DFUSX (lowest) < DFUS < DFALX ≈ DFAI < DFEMX ≈ DFAE (highest) as % of NAV","All funds: DFA LP explicitly does not act as securities lending agent (per Form ADV)"] },
+            ].map(card => (
+              <div key={card.title} style={{ background:C.panel, border:`1px solid ${card.color}30`, borderRadius:10, padding:16 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:card.color, marginBottom:12, lineHeight:1.4, fontFamily:"Georgia,serif" }}>{card.title}</div>
+                <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:6 }}>
+                  {card.points.map((p,i) => (
+                    <li key={i} style={{ fontSize:11, color:C.dim, lineHeight:1.5, display:"flex", gap:6 }}>
+                      <span style={{ color:card.color, flexShrink:0, marginTop:1 }}>›</span>{p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={{ margin:"20px 20px 0", padding:"10px 14px", background:C.panel, border:`1px solid ${C.border}`, borderRadius:8, fontSize:11, color:C.muted, lineHeight:1.6 }}>
+        Sources: SEC EDGAR (Form 497K, 485BPOS, N-CSR); DFA Prospectuses dated Feb 28, 2024 and Feb 28, 2025; Dimensional ETF Trust Prospectus Feb 28, 2025; DFA Form ADV Part 2A (March 2025); Federal Register Oct 2025; Rule 6c-11 (ETF Rule). Investment objective text quoted directly from SEC filings.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
