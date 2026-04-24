@@ -1,0 +1,369 @@
+import { useState } from "react";
+
+const C = {
+  bg: "#0B0F1A",
+  panel: "#111827",
+  panelBorder: "#1E2D45",
+  accent: "#2563EB",
+  accentLight: "#3B82F6",
+  gold: "#D4A847",
+  green: "#10B981",
+  teal: "#0D9488",
+  purple: "#8B5CF6",
+  orange: "#F97316",
+  rose: "#F43F5E",
+  muted: "#6B7280",
+  text: "#E5E7EB",
+  textDim: "#9CA3AF",
+  white: "#F9FAFB",
+};
+
+const TABS = ["Corporate Structure", "Fund Entities", "Board Governance", "Internal Agreements", "External Providers"];
+
+function Label({ children }) {
+  return <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: C.muted, fontFamily: "monospace", marginBottom: 10 }}>{children}</div>;
+}
+function Tag({ color, children }) {
+  return <span style={{ background: `${color}18`, border: `1px solid ${color}40`, borderRadius: 4, padding: "2px 9px", fontSize: 11, color }}>{children}</span>;
+}
+
+function CorporateStructure() {
+  const [hov, setHov] = useState(null);
+  const tiers = [
+    [{ id: "booth", label: "David G. Booth", sub: "Executive Chairman & Principal Owner", color: C.gold }],
+    [{ id: "holdingsinc", label: "Dimensional Holdings Inc.", sub: "Delaware Corporation · General Partner of DFA LP", color: C.accentLight }],
+    [{ id: "holdingsllc", label: "Dimensional Holdings LLC", sub: "Wholly-owned subsidiary · Holds ~96% LP interest", color: C.accentLight }],
+    [{ id: "dfalp", label: "Dimensional Fund Advisors LP", sub: "Delaware Limited Partnership · SEC-registered Investment Adviser", color: C.green, highlight: true }],
+    [
+      { id: "dfasec", label: "DFA Securities LLC", sub: "Distributor of Fund Shares", color: C.teal },
+      { id: "dfal", label: "Dimensional Fund Advisors Ltd.", sub: "UK entity · FCA authorised · Sub-Advisor", color: C.teal },
+      { id: "dfaus", label: "DFA Australia Limited", sub: "NSW Corporation · Sub-Advisor", color: C.teal },
+      { id: "dfacanada", label: "DFA Canada ULC", sub: "Canadian entity", color: C.teal },
+      { id: "dfapte", label: "DFA Pte. Ltd.", sub: "Singapore entity", color: C.teal },
+      { id: "dfajapan", label: "Dimensional Japan Ltd.", sub: "Japan entity", color: C.teal },
+    ],
+  ];
+  const tierLabels = ["Principal Ownership", "General Partner", "LP Interest Holder (~96%)", "Operating Adviser (Core Entity)", "Subsidiaries & Affiliates"];
+
+  return (
+    <div style={{ padding: "20px 0" }}>
+      <p style={{ color: C.textDim, fontSize: 13, marginBottom: 24, lineHeight: 1.7 }}>
+        DFA LP is a Delaware limited partnership controlled by its general partner, <span style={{ color: C.accentLight }}>Dimensional Holdings Inc.</span> David Booth is the principal owner of Holdings Inc.; the remaining ~4% LP interest is held by current and former employees and directors.
+      </p>
+      {tiers.map((group, tier) => (
+        <div key={tier}>
+          <Label>{tierLabels[tier]}</Label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginBottom: 4 }}>
+            {group.map((n) => (
+              <div key={n.id} onMouseEnter={() => setHov(n.id)} onMouseLeave={() => setHov(null)}
+                style={{ flex: tier === 4 ? "1 1 150px" : "1 1 auto", background: hov === n.id ? `${n.color}18` : n.highlight ? `${C.green}10` : C.panel, border: `1px solid ${hov === n.id ? n.color : n.highlight ? C.green : C.panelBorder}`, borderRadius: 10, padding: "11px 15px", cursor: "default", transition: "all 0.2s", boxShadow: n.highlight ? `0 0 20px ${C.green}20` : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: n.color, flexShrink: 0, boxShadow: `0 0 5px ${n.color}` }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: n.highlight ? C.green : C.white, fontFamily: "Georgia, serif" }}>{n.label}</span>
+                </div>
+                <div style={{ fontSize: 11, color: C.textDim, paddingLeft: 15 }}>{n.sub}</div>
+              </div>
+            ))}
+          </div>
+          {tier < 4 && <div style={{ textAlign: "center", color: C.muted, fontSize: 18, padding: "4px 0" }}>↓</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FundEntities() {
+  const funds = [
+    { id: "dfaidg", abbr: "DFAIDG", name: "DFA Investment Dimensions Group Inc.", state: "Maryland Corporation", type: "Open-End Mutual Fund", board: "Board of Directors", color: C.accentLight, examples: ["US Core Equity portfolios", "International portfolios", "Fixed Income portfolios"], notes: "Largest and oldest fund company. Hundreds of portfolios." },
+    { id: "dig", abbr: "DIG", name: "Dimensional Investment Group Inc.", state: "Maryland Corporation", type: "Open-End Mutual Fund", board: "Board of Directors", color: C.purple, examples: ["Emerging Markets portfolios", "Specialty equity series"], notes: "Separate Maryland corp from DFAIDG with its own Board." },
+    { id: "etftrust", abbr: "ETF Trust", name: "Dimensional ETF Trust", state: "Delaware Statutory Trust", type: "Open-End ETF", board: "Board of Trustees", color: C.green, examples: ["US Core Equity ETFs", "International Core ETFs", "Sustainable ETFs"], notes: "Newer vehicle for ETF share classes. Target for mutual-fund-to-ETF reorganizations." },
+    { id: "dfaitc", abbr: "DFAITC", name: "DFA Investment Trust Company", state: "Delaware Statutory Trust", type: "Institutional Master Fund", board: "Board of Trustees", color: C.gold, examples: ["Emerging Markets Value Fund", "Master-feeder structures"], notes: "Feeder funds in DFAIDG/DIG invest into master portfolios here." },
+    { id: "dem", abbr: "DEM", name: "Dimensional Emerging Markets Value Fund", state: "Separate Legal Entity", type: "Open-End Fund", board: "Board of Directors", color: C.teal, examples: ["DEMSX / DFEVX portfolios"], notes: "Standalone entity; used in master-feeder structure with DFAITC." },
+  ];
+  const [sel, setSel] = useState("dfaidg");
+  const f = funds.find((x) => x.id === sel);
+  return (
+    <div style={{ padding: "20px 0" }}>
+      <p style={{ color: C.textDim, fontSize: 13, marginBottom: 18, lineHeight: 1.7 }}>Five distinct registered investment companies, each a separate legal entity with its own governing Board. DFA LP serves as investment adviser to all five.</p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 22 }}>
+        {funds.map((fd) => (
+          <button key={fd.id} onClick={() => setSel(fd.id)} style={{ background: sel === fd.id ? `${fd.color}20` : "transparent", border: `1px solid ${sel === fd.id ? fd.color : C.panelBorder}`, borderRadius: 20, padding: "5px 13px", fontSize: 12, fontWeight: sel === fd.id ? 700 : 400, color: sel === fd.id ? fd.color : C.muted, cursor: "pointer", fontFamily: "monospace" }}>{fd.abbr}</button>
+        ))}
+      </div>
+      <div style={{ background: C.panel, border: `1px solid ${f.color}40`, borderRadius: 12, padding: 22 }}>
+        <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <div style={{ width: 11, height: 11, borderRadius: "50%", background: f.color, boxShadow: `0 0 8px ${f.color}`, marginTop: 5, flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "Georgia, serif", marginBottom: 3 }}>{f.name}</div>
+            <div style={{ fontSize: 11, color: f.color, fontFamily: "monospace" }}>{f.abbr}</div>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+          {[["Legal Form", f.state], ["Fund Type", f.type], ["Regulation", "1940 Act"], ["Governing Body", f.board]].map(([k, v]) => (
+            <div key={k} style={{ background: "#0B0F1A", borderRadius: 8, padding: "9px 13px" }}>
+              <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>{k}</div>
+              <div style={{ fontSize: 13, color: C.text, fontWeight: 600 }}>{v}</div>
+            </div>
+          ))}
+        </div>
+        <Label>Example Portfolios</Label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>{f.examples.map((e) => <Tag key={e} color={f.color}>{e}</Tag>)}</div>
+        <div style={{ fontSize: 12, color: C.textDim, padding: "9px 13px", background: `${f.color}08`, borderRadius: 8, borderLeft: `3px solid ${f.color}50` }}>{f.notes}</div>
+      </div>
+    </div>
+  );
+}
+
+function BoardGovernance() {
+  const members = [
+    { name: "David G. Booth", role: "Interested", affil: "Executive Chairman, DFA", note: "Principal owner of Dimensional Holdings Inc.", color: C.gold },
+    { name: "Gerard K. O'Reilly", role: "Interested", affil: "Co-CEO & Co-CIO, DFA", note: "Current senior leadership of DFA LP.", color: C.gold },
+    { name: "Douglas W. Diamond", role: "Independent", affil: "University of Chicago (Nobel Laureate)", note: "Academic finance expertise.", color: C.accentLight },
+    { name: "Darrell Duffie", role: "Independent", affil: "Stanford GSB", note: "Academic finance expertise.", color: C.accentLight },
+    { name: "Francis A. Longstaff", role: "Independent", affil: "UCLA Anderson", note: "Fixed income and derivatives.", color: C.accentLight },
+    { name: "Abbie J. Smith", role: "Independent", affil: "University of Chicago", note: "Accounting & governance; operating company board experience.", color: C.accentLight },
+    { name: "Heather E. Tookes", role: "Independent", affil: "Yale School of Management", note: "Corporate finance expertise.", color: C.accentLight },
+    { name: "Stefan Nagel", role: "Independent", affil: "UChicago Booth", note: "Added Sept 2024. Fama Family Distinguished Service Professor. Oversees ~165 portfolios.", color: C.accentLight },
+  ];
+  const duties = [
+    { icon: "⚖️", t: "Approve Advisory Agreement", d: "Annual approval; majority of independent directors vote in person (Section 15, 1940 Act)." },
+    { icon: "💲", t: "Approve Advisory Fees", d: "Advisory fees charged to fund clients are approved by each fund's Board of Directors/Trustees." },
+    { icon: "🏦", t: "Oversee Service Providers", d: "Monitor custodian, transfer agent, fund accountant, securities lending agents, auditors, legal counsel, insurers." },
+    { icon: "🛡️", t: "Approve Reorganizations", d: "Majority of independent directors must approve fund reorganizations and material structural changes." },
+    { icon: "📋", t: "Elect Fund Officers", d: "Boards elect officers responsible for day-to-day portfolio operations." },
+    { icon: "🚫", t: "Broker-Dealer Policy", d: "Approve policies prohibiting DFA from selecting brokers based on promotion of fund shares." },
+    { icon: "📊", t: "18f-3 / Multi-Class Oversight", d: "Majority of all directors AND majority of independent directors must approve any multi-class plan." },
+    { icon: "🗳️", t: "Compliance & Proxy Oversight", d: "Approve CCO and compliance program; oversee proxy voting policies and costs." },
+  ];
+  return (
+    <div style={{ padding: "20px 0" }}>
+      <p style={{ color: C.textDim, fontSize: 13, marginBottom: 22, lineHeight: 1.7 }}>Each fund entity has its own Board. The 1940 Act requires a majority of <span style={{ color: C.accentLight }}>independent (disinterested)</span> directors/trustees on all key votes.</p>
+      <Label>Board Composition</Label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, marginBottom: 26 }}>
+        {members.map((m) => (
+          <div key={m.name} style={{ background: C.panel, border: `1px solid ${C.panelBorder}`, borderRadius: 10, padding: "11px 13px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 6, marginBottom: 3 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.white, fontFamily: "Georgia, serif" }}>{m.name}</span>
+              <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 10, background: `${m.color}20`, color: m.color, border: `1px solid ${m.color}40`, whiteSpace: "nowrap", flexShrink: 0 }}>{m.role.toUpperCase()}</span>
+            </div>
+            <div style={{ fontSize: 11, color: C.accentLight, marginBottom: 3 }}>{m.affil}</div>
+            <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5 }}>{m.note}</div>
+          </div>
+        ))}
+      </div>
+      <Label>Key Board Responsibilities</Label>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+        {duties.map((d) => (
+          <div key={d.t} style={{ background: C.panel, border: `1px solid ${C.panelBorder}`, borderRadius: 10, padding: "11px 13px", display: "flex", gap: 9 }}>
+            <span style={{ fontSize: 16, flexShrink: 0 }}>{d.icon}</span>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 3 }}>{d.t}</div>
+              <div style={{ fontSize: 11, color: C.textDim, lineHeight: 1.5 }}>{d.d}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InternalAgreements() {
+  const ags = [
+    { name: "Investment Advisory Agreement", icon: "📜", color: C.green, desc: "Primary agreement giving DFA LP authority and discretion to manage fund portfolios.", parties: [{ e: "Fund Entity (DFAIDG / DIG / ETF Trust / DFAITC / DEM)", r: "Client / Fund", c: C.accentLight }, { e: "Dimensional Fund Advisors LP", r: "Investment Adviser", c: C.green }], boardApproval: "Annual approval required; majority of independent directors must vote in person", renewFreq: "Annual", legal: "Section 15(c), Investment Company Act of 1940", sigs: ["DFA LP (signed via Dimensional Holdings Inc., GP)", "Fund VP (e.g., Valerie Brown, Carolyn O)"], feeNote: "Advisory fees approved by each fund's Board of Directors/Trustees, and in some cases by shareholders." },
+    { name: "Sub-Advisory Agreement (DFAL)", icon: "🇬🇧", color: C.teal, desc: "DFA LP retains Dimensional Fund Advisors Ltd. (UK, FCA-authorised) to handle UK/European security selection and trade execution.", parties: [{ e: "Fund Entity", r: "Fund", c: C.accentLight }, { e: "Dimensional Fund Advisors LP", r: "Primary Adviser (Employer)", c: C.green }, { e: "Dimensional Fund Advisors Ltd.", r: "Sub-Adviser (~$13k/year/fund)", c: C.teal }], boardApproval: "Board of relevant fund entity approves DFAL's appointment", renewFreq: "Annual", legal: "FCA authorised; governed under UK Financial Services law", sigs: ["DFA LP (Dimensional Holdings Inc., GP)", "DFAL VP & Secretary (e.g., Catherine L. Newell)", "Fund VP (e.g., Valerie Brown)"] },
+    { name: "Sub-Advisory Agreement (DFA Australia)", icon: "🇦🇺", color: C.purple, desc: "DFA LP retains DFA Australia Limited for Australian and Asia-Pacific securities.", parties: [{ e: "Fund Entity (DFAIDG / DFAITC)", r: "Fund", c: C.accentLight }, { e: "Dimensional Fund Advisors LP", r: "Primary Adviser", c: C.green }, { e: "DFA Australia Limited", r: "Sub-Adviser (NSW Corporation)", c: C.purple }], boardApproval: "Board of fund approves appointment", renewFreq: "Annual", legal: "Standard sub-advisory framework under 1940 Act", sigs: ["DFA LP (Dimensional Holdings Inc., GP)", "DFA Australia Director (e.g., Graham Lennon)", "Fund VP (e.g., Carolyn O / Valerie Brown)"] },
+    { name: "Distribution Agreement", icon: "📢", color: C.orange, desc: "Authorizes DFA Securities LLC (DFA affiliate) to act as distributor and principal underwriter of all fund shares.", parties: [{ e: "Fund Entities (DFAIDG / DIG / ETF Trust)", r: "Issuer", c: C.accentLight }, { e: "DFA Securities LLC", r: "Distributor / Principal Underwriter", c: C.orange }], boardApproval: "Board approval required; independent directors review annually", renewFreq: "Annual", legal: "Section 12(b) / Rule 12b-1 framework under the 1940 Act", sigs: ["Fund entity officer", "DFA Securities LLC officer"] },
+    { name: "Multi-Class Plan (Rule 18f-3)", icon: "🔀", color: C.gold, desc: "Plan allowing funds to issue both ETF and mutual fund share classes in the same portfolio.", parties: [{ e: "Fund (DFAIDG / DIG / ETF Trust)", r: "Registrant", c: C.accentLight }, { e: "Dimensional Fund Advisors LP", r: "Adviser (prepares Initial Advisor Report)", c: C.green }], boardApproval: "Majority of ALL directors AND majority of independent directors must find plan in best interests of each class", renewFreq: "Ongoing board monitoring", legal: "Rule 18f-3 under the 1940 Act; SEC exemptive relief" },
+    { name: "Fund Reorganization Agreement", icon: "🔄", color: C.rose, desc: "Merges a mutual fund portfolio into an ETF portfolio — DFA's ongoing mutual-fund-to-ETF conversion program.", parties: [{ e: "Target Fund (e.g., DFAIDG portfolio)", r: "Transferor", c: C.accentLight }, { e: "Acquiring Fund (ETF Trust portfolio)", r: "Acquiring Entity", c: C.green }], boardApproval: "Separate boards of each fund must independently approve; all independent directors vote; shareholders notified", renewFreq: "One-time per reorganization", legal: "Section 17 exemptive relief under the 1940 Act" },
+  ];
+  const [sel, setSel] = useState(0);
+  const ag = ags[sel];
+  return (
+    <div style={{ padding: "20px 0" }}>
+      <p style={{ color: C.textDim, fontSize: 13, marginBottom: 18, lineHeight: 1.7 }}>Agreements between DFA LP, its affiliates, and the fund entities — governing the core investment management relationship.</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 22 }}>
+        {ags.map((a, i) => (
+          <button key={i} onClick={() => setSel(i)} style={{ background: sel === i ? `${a.color}18` : "transparent", border: `1px solid ${sel === i ? a.color : C.panelBorder}`, borderRadius: 8, padding: "9px 14px", textAlign: "left", fontSize: 13, fontWeight: sel === i ? 700 : 400, color: sel === i ? C.white : C.textDim, cursor: "pointer", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 9 }}>
+            <span>{a.icon}</span>{a.name}
+          </button>
+        ))}
+      </div>
+      <div style={{ background: C.panel, border: `1px solid ${ag.color}40`, borderRadius: 12, padding: 22 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "Georgia, serif", marginBottom: 7 }}>{ag.name}</div>
+        <div style={{ fontSize: 13, color: C.textDim, marginBottom: 18, lineHeight: 1.6 }}>{ag.desc}</div>
+        <Label>Signing Parties</Label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 16 }}>
+          {ag.parties.map((p, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 11, background: "#0B0F1A", borderRadius: 8, padding: "9px 13px", border: `1px solid ${p.c}30` }}>
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: `${p.c}20`, border: `1px solid ${p.c}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: p.c, flexShrink: 0 }}>{i + 1}</div>
+              <div><div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{p.e}</div><div style={{ fontSize: 11, color: p.c }}>{p.r}</div></div>
+            </div>
+          ))}
+        </div>
+        {ag.sigs && (<><Label>Named Signatories (from SEC filings)</Label><div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: 14 }}>{ag.sigs.map((s, i) => <div key={i} style={{ fontSize: 12, color: C.textDim, padding: "6px 11px", background: "#0B0F1A", borderRadius: 6, borderLeft: `3px solid ${C.gold}50` }}>{s}</div>)}</div></>)}
+        {ag.feeNote && (<div style={{ marginBottom: 14, padding: "9px 13px", background: `${C.gold}0D`, border: `1px solid ${C.gold}30`, borderRadius: 8, fontSize: 12, color: C.textDim }}><span style={{ color: C.gold, fontWeight: 700 }}>Fee approval: </span>{ag.feeNote}</div>)}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+          <div style={{ background: "#0B0F1A", borderRadius: 8, padding: "9px 13px" }}><div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Board Approval</div><div style={{ fontSize: 12, color: C.text, lineHeight: 1.5 }}>{ag.boardApproval}</div></div>
+          <div style={{ background: "#0B0F1A", borderRadius: 8, padding: "9px 13px" }}><div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Renewal</div><div style={{ fontSize: 12, color: C.text }}>{ag.renewFreq}</div></div>
+          {ag.legal && (<div style={{ gridColumn: "span 2", background: "#0B0F1A", borderRadius: 8, padding: "9px 13px" }}><div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>Legal Basis</div><div style={{ fontSize: 12, color: C.text }}>{ag.legal}</div></div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExternalProviders() {
+  const providers = [
+    {
+      id: "custodian", icon: "🏦", name: "Custodian Agreement", provider: "State Street Bank and Trust Company", providerDetail: "1 Lincoln Street, Boston, MA · Previously: Chase Manhattan (1998), Citibank N.A. (2012)", color: C.accentLight,
+      contractParties: [{ e: "Fund Entity (DFAIDG / DIG / DFAITC / DEM / ETF Trust)", r: "Client — owner of assets held in custody", c: C.accentLight }, { e: "State Street Bank and Trust Company", r: "Global Custodian", c: C.green }],
+      whoDecides: "Board selects and oversees the custodian. DFA LP (per the management agreement) monitors and evaluates custodian services on the Board's behalf.",
+      whatItCovers: "Safekeeping of fund securities; trade settlement; income collection; foreign sub-custody arrangements; daily position and cash reconciliation; corporate action processing.",
+      boardRole: "Board must approve the custodian appointment. Ongoing oversight is a Board responsibility. DFA LP reports on custodian performance.",
+      history: "DFAIDG held a Global Custody Agreement with The Chase Manhattan Bank (1998); Global Custodial Services Agreement with Citibank N.A. (2012); and a Custodian Agreement with State Street Bank and Trust Company. State Street is now the primary custodian across all fund entities.",
+      feeNote: "Custodian fees are fund expenses — borne by the fund and disclosed in the expense ratio.",
+    },
+    {
+      id: "transferagent", icon: "📒", name: "Transfer Agency & Service Agreement", provider: "State Street Bank and Trust Company", providerDetail: "Also acts as dividend disbursing agent · Agreement dated October 3, 2012 with amendments", color: C.green,
+      contractParties: [{ e: "Fund Entity (e.g., DFAIDG)", r: "Fund / Client", c: C.accentLight }, { e: "State Street Bank and Trust Company", r: "Transfer Agent & Dividend Disbursing Agent", c: C.green }],
+      whoDecides: "Board approves and oversees the transfer agent. DFA LP monitors performance on behalf of the Board.",
+      whatItCovers: "Shareholder record-keeping; processing purchases and redemptions; dividend reinvestment; calculation and disbursement of shareholder service fees to intermediaries; FAN (Fund Accounting Network) services.",
+      boardRole: "Board approval required; annual review as part of overall service provider oversight.",
+      history: "Transfer Agency and Service Agreement dated October 3, 2012. Amended August 8, 2013 to add FAN services — State Street calculates shareholder service fees and disburses them to intermediaries after funding from the Custodian.",
+      feeNote: "Transfer agent fees are fund expenses borne by the fund.",
+    },
+    {
+      id: "fundaccount", icon: "📊", name: "Fund Accounting & Administration Agreement", provider: "State Street Bank and Trust Company", providerDetail: "Accounting and Administration Services Agent for all portfolios, underlying funds, and master funds", color: C.teal,
+      contractParties: [{ e: "Fund Entity (DFAIDG / DIG / DFAITC / DEM)", r: "Fund / Client", c: C.accentLight }, { e: "State Street Bank and Trust Company", r: "Fund Administrator & Accounting Agent", c: C.teal }],
+      whoDecides: "Board approves the fund accounting agent. Services are subject to supervision by both the fund's executive officers AND the Board of Directors.",
+      whatItCovers: "Daily NAV calculation; books and records maintenance; preparation of regulatory filings and reports; liaison with custodians; tax lot accounting; daily reconciliation of the fund's cash and positions with custodians; detailed NAV reconciliation.",
+      boardRole: "Ongoing supervision by the Board of Directors is explicitly stated in fund SAI filings. The Board monitors NAV calculation accuracy.",
+      history: "State Street serves as accounting and administration services agent for all portfolios, underlying funds, and master funds across DFAIDG, DIG, DFAITC, and DEM.",
+      feeNote: "Administration fees are fund expenses included in the fund's total expense ratio.",
+    },
+    {
+      id: "seclending", icon: "💹", name: "Securities Lending Agreement", provider: "Securities Lending Agent (typically custodian bank)", providerDetail: "DFA LP explicitly does NOT act as securities lending agent", color: C.gold,
+      contractParties: [{ e: "Fund Entity", r: "Lender / Beneficial Owner of Securities", c: C.accentLight }, { e: "Securities Lending Agent (e.g., State Street)", r: "Agent Lender — facilitates loans and manages collateral", c: C.gold }, { e: "Approved Borrowers (broker-dealers, prime brokers, banks)", r: "Borrowers", c: C.muted }],
+      whoDecides: "The Board approves the securities lending program. DFA LP does not select the lending agent; the Board oversees the program. DFA LP's Form ADV explicitly states it does not act as securities lending agent for its fund clients.",
+      whatItCovers: "Lending portfolio securities to creditworthy borrowers; receipt and management of collateral (cash or high-quality non-cash); collateral reinvestment in approved vehicles; revenue split between fund and agent; recall of securities for voting or corporate actions.",
+      boardRole: "Board approves the program and monitors lending activity, collateral quality, and revenue sharing. Fees for oversight of securities lending activities are explicitly listed as fund expenses in the ETF Trust management agreement.",
+      history: "DFA funds have operated securities lending programs since at least 2006. Net revenues disclosed in annual N-CSR filings as a percentage of average daily net assets.",
+      feeNote: "Securities lending revenue flows to the fund. Oversight costs are fund expenses. Risk of borrower default and collateral shortfall is borne by the fund.",
+    },
+    {
+      id: "auditor", icon: "🔎", name: "Independent Audit Engagement", provider: "PricewaterhouseCoopers LLP", providerDetail: "Philadelphia, PA · Auditor across all five DFA fund entities", color: C.orange,
+      contractParties: [{ e: "Fund Entity (DFAIDG / DIG / ETF Trust / DEM / DFAITC)", r: "Audit Client", c: C.accentLight }, { e: "PricewaterhouseCoopers LLP", r: "Independent Registered Public Accounting Firm", c: C.orange }],
+      whoDecides: "The Board (or Audit Committee thereof) selects and retains the independent auditor. The auditor must be independent of DFA LP.",
+      whatItCovers: "Annual audit of fund financial statements and financial highlights; consent to incorporate audit reports into N-1A registration statements; attestation of financial controls; opinions on each fiscal year-end.",
+      boardRole: "The Board is responsible for oversight of auditor independence and financial reporting integrity. The auditor reports directly to the Board — not to DFA LP. This is a critical governance separation.",
+      history: "PwC Philadelphia signed audit consents for DFAIDG, DIG, ETF Trust, DEM, and DFAITC most recently dated December 21, 2023 (incorporated in February 2024 registration statement filings).",
+      feeNote: "Audit fees are fund expenses, disclosed in each fund's SAI and annual report.",
+    },
+    {
+      id: "legal", icon: "⚖️", name: "Legal Counsel Arrangements", provider: "Fund Counsel (external) + In-House General Counsel", providerDetail: "Catherine L. Newell, Esq. — President and General Counsel, DFAIDG; VP & Secretary, DFA LP", color: C.rose,
+      contractParties: [{ e: "Fund Entity", r: "Client", c: C.accentLight }, { e: "Independent Legal Counsel (retained by independent directors separately)", r: "Counsel to Independent Directors", c: C.rose }, { e: "DFA LP In-House / Fund General Counsel", r: "Fund/Adviser Counsel", c: C.teal }],
+      whoDecides: "Independent directors retain their own separate legal counsel independent of DFA LP — critical for arm's-length review of the advisory agreement. The Board as a whole also retains fund counsel.",
+      whatItCovers: "SEC registration and qualification of shares; regulatory compliance; fund governance; review of advisory agreements during Section 15(c) process; litigation; registration statement drafting; tax and ERISA matters.",
+      boardRole: "Legal fees for counsel to the fund and/or trustees are listed as fund expenses in the ETF Trust management agreement. Independent directors' outside counsel enables them to evaluate the advisory agreement without reliance on DFA LP's lawyers.",
+      history: "Catherine L. Newell served as both VP/Secretary of DFA LP entities AND as President and General Counsel of DFAIDG — a dual role. Independent directors use separate outside counsel for governance independence.",
+      feeNote: "Fund legal fees are fund expenses. DFA LP's own legal costs are borne by DFA LP, not the fund.",
+    },
+    {
+      id: "compliance", icon: "📋", name: "Fund Compliance Program (CCO Arrangement)", provider: "DFA LP — provides CCO services to the fund", providerDetail: "Costs allocated as fund expenses per the management agreement", color: C.purple,
+      contractParties: [{ e: "Fund Entity", r: "Regulated Entity (required to have a CCO under Rule 38a-1)", c: C.accentLight }, { e: "DFA LP (provides CCO and compliance infrastructure)", r: "Compliance Services Provider", c: C.purple }],
+      whoDecides: "Board must designate the Chief Compliance Officer (CCO) and approve the compliance program. The CCO reports directly to the Board, not to DFA LP management.",
+      whatItCovers: "Rule 38a-1 written compliance policies and procedures; annual compliance report to Board; monitoring of DFA LP's and all service providers' compliance with applicable law; escalation of material violations.",
+      boardRole: "Board approves the compliance program and any material changes. CCO reports annually and as needed to the Board. Costs of the fund's compliance program are explicitly listed as fund expenses.",
+      history: "Rule 38a-1 (2004) requires all registered investment companies to have a CCO appointed by the Board. DFA embeds CCO functions within DFA LP but allocates the cost to the fund.",
+      feeNote: "Compliance program costs are fund expenses, not DFA LP costs — despite DFA LP providing the personnel.",
+    },
+    {
+      id: "insurance", icon: "🛡️", name: "Fidelity Bond & D&O / E&O Insurance", provider: "Insurance Carriers (various)", providerDetail: "Pro-rata share of premiums is a fund expense per the ETF Trust management agreement", color: C.green,
+      contractParties: [{ e: "Fund Entity (jointly with DFA LP in some cases)", r: "Named Insured", c: C.accentLight }, { e: "Insurance Carrier(s)", r: "Insurer", c: C.green }],
+      whoDecides: "Board approves insurance arrangements. The adviser may source carriers, but coverage must be adequate to protect fund and shareholders. Required under Rule 17g-1 (fidelity bond).",
+      whatItCovers: "Fidelity bond covering larceny and embezzlement by fund personnel (required under Rule 17g-1); Directors & Officers liability insurance; Errors & Omissions liability coverage protecting trustees.",
+      boardRole: "Board approval required. The fund's pro-rata portion of fidelity bond, E&O, and D&O premiums are listed as fund expenses. Board monitors adequacy of coverage.",
+      history: "Required under Rule 17g-1 of the 1940 Act for all registered investment companies. Dimensional ETF Trust management agreement explicitly lists these premiums as fund expenses.",
+      feeNote: "Fund's pro-rata share of all insurance premiums are fund expenses — not borne by DFA LP.",
+    },
+    {
+      id: "proxy", icon: "🗳️", name: "Proxy Voting / Shareholder Engagement", provider: "DFA LP votes proxies as investment adviser; may use proxy advisory research", providerDetail: "Fees for proxy voting research and oversight are fund expenses", color: C.muted,
+      contractParties: [{ e: "Fund Entity", r: "Beneficial Owner of Portfolio Company Shares", c: C.accentLight }, { e: "Dimensional Fund Advisors LP", r: "Proxy Voting Agent (authority granted by advisory agreement)", c: C.green }, { e: "Proxy Advisory / Research Firms (if used)", r: "Research Vendor", c: C.muted }],
+      whoDecides: "DFA LP votes proxies under policies adopted per Rule 206(4)-6. Board approves the proxy voting guidelines and oversight framework. Fees for proxy research services are fund expenses approved by the Board.",
+      whatItCovers: "Voting proxies for portfolio company corporate actions (director elections, M&A, executive compensation, ESG shareholder proposals). DFA is active on governance matters. Recordkeeping and Form N-PX disclosure.",
+      boardRole: "Board approves proxy voting guidelines and oversight processes. Costs for proxy voting oversight and research are fund expenses. Board reviews DFA's proxy voting record.",
+      history: "DFA LP has developed published proxy voting guidelines and is publicly known for active engagement with portfolio companies on governance issues.",
+      feeNote: "Proxy-related research and oversight expenses are fund expenses, as approved by the Board per the management agreement.",
+    },
+  ];
+
+  const [sel, setSel] = useState("custodian");
+  const p = providers.find((x) => x.id === sel);
+
+  return (
+    <div style={{ padding: "20px 0" }}>
+      <p style={{ color: C.textDim, fontSize: 13, marginBottom: 16, lineHeight: 1.7 }}>
+        Agreements between fund entities and <span style={{ color: C.accentLight }}>third-party service providers</span>. The Board of Directors/Trustees owns all of these relationships — DFA LP monitors providers on the Board's behalf.
+      </p>
+      <div style={{ marginBottom: 18, padding: "11px 15px", background: `${C.gold}0D`, border: `1px solid ${C.gold}30`, borderRadius: 8, fontSize: 12, color: C.textDim, lineHeight: 1.65 }}>
+        <span style={{ color: C.gold, fontWeight: 700 }}>Governing principle: </span>
+        All external service provider agreements are signed by the <span style={{ color: C.white }}>fund entity</span>, not DFA LP. DFA LP's management agreement grants it authority to <em>monitor and evaluate</em> providers, but DFA LP does not sign on the fund's behalf. All fees — custodian, transfer agent, fund accounting, securities lending oversight, audit, legal counsel, compliance, insurance, and proxy — are <span style={{ color: C.white }}>fund expenses</span> overseen by the Board.
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 22 }}>
+        {providers.map((pv) => (
+          <button key={pv.id} onClick={() => setSel(pv.id)} style={{ background: sel === pv.id ? `${pv.color}18` : "transparent", border: `1px solid ${sel === pv.id ? pv.color : C.panelBorder}`, borderRadius: 8, padding: "9px 12px", textAlign: "left", fontSize: 12, fontWeight: sel === pv.id ? 700 : 400, color: sel === pv.id ? C.white : C.textDim, cursor: "pointer", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 15 }}>{pv.icon}</span><span>{pv.name}</span>
+          </button>
+        ))}
+      </div>
+      <div style={{ background: C.panel, border: `1px solid ${p.color}40`, borderRadius: 12, padding: 22, boxShadow: `0 0 24px ${p.color}10` }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 7 }}>
+          <span style={{ fontSize: 22 }}>{p.icon}</span>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.white, fontFamily: "Georgia, serif" }}>{p.name}</div>
+            <div style={{ fontSize: 12, color: p.color, marginTop: 2 }}>{p.provider}</div>
+            <div style={{ fontSize: 11, color: C.muted }}>{p.providerDetail}</div>
+          </div>
+        </div>
+        <Label>Contracting Parties</Label>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 16 }}>
+          {p.contractParties.map((cp, i) => (
+            <div key={i} style={{ display: "flex", gap: 11, background: "#0B0F1A", borderRadius: 8, padding: "9px 13px", border: `1px solid ${cp.c}30`, alignItems: "center" }}>
+              <div style={{ width: 26, height: 26, borderRadius: 6, background: `${cp.c}20`, border: `1px solid ${cp.c}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: cp.c, flexShrink: 0 }}>{i + 1}</div>
+              <div><div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{cp.e}</div><div style={{ fontSize: 11, color: cp.c }}>{cp.r}</div></div>
+            </div>
+          ))}
+        </div>
+        {[["Who Decides / Selects", p.whoDecides, C.accentLight], ["What the Agreement Covers", p.whatItCovers, C.text], ["Board's Role", p.boardRole, C.gold], ["Historical Notes", p.history, C.muted], ["Fee Treatment", p.feeNote, C.green]].map(([label, val, col]) => (
+          <div key={label} style={{ background: "#0B0F1A", borderRadius: 8, padding: "9px 13px", marginBottom: 7 }}>
+            <div style={{ fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>{label}</div>
+            <div style={{ fontSize: 12, color: col, lineHeight: 1.6 }}>{val}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [tab, setTab] = useState(0);
+  const panels = [<CorporateStructure />, <FundEntities />, <BoardGovernance />, <InternalAgreements />, <ExternalProviders />];
+  return (
+    <div style={{ background: C.bg, minHeight: "100vh", fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", color: C.text, paddingBottom: 60 }}>
+      <div style={{ background: "linear-gradient(135deg,#0B1628 0%,#111827 100%)", borderBottom: `1px solid ${C.panelBorder}`, padding: "26px 22px 18px" }}>
+        <div style={{ fontSize: 10, color: C.accent, fontFamily: "monospace", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 5 }}>Legal & Corporate Structure</div>
+        <h1 style={{ fontSize: 21, fontWeight: 800, color: C.white, fontFamily: "Georgia, serif", margin: 0, marginBottom: 3 }}>Dimensional Fund Advisors</h1>
+        <p style={{ fontSize: 12, color: C.muted, margin: 0 }}>Corporate hierarchy · Fund vehicles · Board governance · Internal & external agreements · Service providers</p>
+      </div>
+      <div style={{ display: "flex", overflowX: "auto", borderBottom: `1px solid ${C.panelBorder}`, background: C.panel, padding: "0 14px" }}>
+        {TABS.map((t, i) => (
+          <button key={t} onClick={() => setTab(i)} style={{ background: "none", border: "none", borderBottom: tab === i ? `2px solid ${C.accent}` : "2px solid transparent", padding: "13px 14px", fontSize: 12, fontWeight: tab === i ? 700 : 400, color: tab === i ? C.white : C.muted, cursor: "pointer", whiteSpace: "nowrap", transition: "all 0.15s" }}>{t}</button>
+        ))}
+      </div>
+      <div style={{ padding: "0 18px" }}>{panels[tab]}</div>
+      <div style={{ margin: "28px 18px 0", padding: "11px 15px", background: C.panel, border: `1px solid ${C.panelBorder}`, borderRadius: 8, fontSize: 11, color: C.muted, lineHeight: 1.6 }}>
+        Sources: SEC EDGAR (Form 485BPOS, N-14, 497, N-CSRS, POS AMI), Federal Register Oct 2025, DFA Form ADV Part 2A (March 2025), DFA Client Relationship Summary (March 2025), DFA Code of Ethics, PricewaterhouseCoopers LLP audit consents (December 2023).
+      </div>
+    </div>
+  );
+}
